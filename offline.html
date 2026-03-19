@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Meu Bolão</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            min-height: 100vh; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 500px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 30px; 
+            padding: 40px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            text-align: center;
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        p { color: #666; margin: 20px 0; line-height: 1.6; }
+        button { 
+            padding: 15px 40px; 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            border-radius: 30px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-top: 20px;
+        }
+        button:hover { background: #219a52; }
+        .icon { font-size: 80px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>Sem conexão</h1>
+        <p>Parece que você está offline no momento.</p>
+        <p>Verifique sua internet e tente novamente.</p>
+        <p>Os palpites já salvos estão disponíveis quando você voltar.</p>
+        <button onclick="window.location.reload()">Tentar novamente</button>
+    </div>
+</body>
+</html>
