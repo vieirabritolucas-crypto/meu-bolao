@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Teste - Meu Bolão</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #667eea; color: white; }
+        .container { max-width: 600px; margin: 0 auto; background: white; color: #333; padding: 20px; border-radius: 10px; }
+        button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 5px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste de Conexão Firebase</h1>
+        <p>Este teste verifica se o Firebase está acessível do seu celular.</p>
+        
+        <button onclick="testarFirebase()">Testar Conexão</button>
+        
+        <div id="resultado" style="margin-top: 20px;">
+            <h3>Resultado:</h3>
+            <pre id="log">Clique no botão para testar...</pre>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
+            authDomain: "meu-bolao-7977f.firebaseapp.com",
+            databaseURL: "https://meu-bolao-7977f-default-rtdb.firebaseio.com",
+            projectId: "meu-bolao-7977f",
+            storageBucket: "meu-bolao-7977f.firebasestorage.app",
+            messagingSenderId: "766522730401",
+            appId: "1:766522730401:web:c056a8dedc130e6a5b0de0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function testarFirebase() {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML = 'Testando...\n';
+
+            database.ref('.info/connected').on('value', (snap) => {
+                if (snap.val() === true) {
+                    logDiv.innerHTML += '✅ Conectado ao Firebase!\n\n';
+                } else {
+                    logDiv.innerHTML += '❌ Desconectado do Firebase\n\n';
+                }
+            });
+
+            logDiv.innerHTML += '📖 Lendo jogos...\n';
+            database.ref('jogos').once('value', (snapshot) => {
+                const jogos = snapshot.val();
+                if (jogos) {
+                    logDiv.innerHTML += '✅ Jogos encontrados!\n';
+                    logDiv.innerHTML += `📊 Total: ${Object.keys(jogos).length} jogos\n\n`;
+                } else {
+                    logDiv.innerHTML += '❌ Nenhum jogo encontrado\n';
+                }
+            }).catch(error => {
+                logDiv.innerHTML += '❌ Erro: ' + error.message + '\n';
+            });
+        }
+    </script>
+</body>
+</html>
