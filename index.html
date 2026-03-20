@@ -2,32 +2,139 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Bolão</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: Arial; padding: 20px; background: #667eea; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; }
-        .jogo { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; border-left: 5px solid #667eea; }
-        input { width: 60px; padding: 5px; margin: 5px; }
-        button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .jogo {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 70px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 25px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 30px;
+        }
+        .btn-login {
+            background: #667eea;
+        }
+        .ranking {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        .primeiro {
+            background: #f1c40f;
+            font-weight: bold;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .tab.ativo {
+            background: #667eea;
+            color: white;
+        }
+        .conteudo {
+            display: none;
+        }
+        .conteudo.ativo {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>⚽ Meu Bolão</h1>
         
+        <!-- TELA DE LOGIN -->
         <div id="login">
-            <h2>Login</h2>
-            <input type="text" id="nome" placeholder="Seu nome">
-            <input type="text" id="celular" placeholder="WhatsApp">
-            <button onclick="fazerLogin()">Entrar</button>
+            <input type="text" id="nome" class="login-input" placeholder="Seu nome">
+            <input type="text" id="celular" class="login-input" placeholder="WhatsApp">
+            <button class="btn-login" onclick="fazerLogin()">Entrar</button>
         </div>
         
-        <div id="jogos" style="display: none;">
-            <h2>Palpites</h2>
-            <div id="lista-jogos"></div>
-            <button onclick="salvarPalpites()">Salvar</button>
+        <!-- PAINEL PRINCIPAL -->
+        <div id="painel" style="display: none;">
+            <div class="tabs">
+                <div class="tab ativo" onclick="mudarAba('palpites')">📊 Palpites</div>
+                <div class="tab" onclick="mudarAba('ranking')">🏆 Ranking</div>
+            </div>
+            
+            <div id="aba-palpites" class="conteudo ativo">
+                <div id="jogos-container"></div>
+                <button onclick="salvarPalpites()">💾 Salvar Palpites</button>
+            </div>
+            
+            <div id="aba-ranking" class="conteudo">
+                <div class="ranking">
+                    <table>
+                        <thead>
+                            <tr><th>Pos</th><th>Nome</th><th>Total</th> '</thead>
+                        <tbody id="ranking-body"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -45,14 +152,25 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-        let jogos = [];
         let usuarioAtual = null;
+        let jogos = [];
+        let participantes = [];
         
+        // Carregar jogos
         database.ref('jogos').on('value', (snapshot) => {
             const data = snapshot.val();
-            jogos = data ? Object.values(data) : [];
-            console.log('Jogos carregados:', jogos);
-            if (usuarioAtual) mostrarJogos();
+            if (data) {
+                jogos = Object.values(data);
+                if (usuarioAtual) mostrarJogos();
+            }
+        });
+        
+        database.ref('participantes').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                participantes = Object.values(data);
+                if (usuarioAtual) atualizarRanking();
+            }
         });
         
         function fazerLogin() {
@@ -60,31 +178,91 @@
             const celular = document.getElementById('celular').value;
             if (!nome || !celular) return alert('Preencha tudo!');
             
-            usuarioAtual = { nome, celular, palpites: [] };
+            usuarioAtual = { nome, celular, palpites: [], pago: true };
+            
             document.getElementById('login').style.display = 'none';
-            document.getElementById('jogos').style.display = 'block';
+            document.getElementById('painel').style.display = 'block';
+            
             mostrarJogos();
+            atualizarRanking();
         }
         
         function mostrarJogos() {
-            const div = document.getElementById('lista-jogos');
-            div.innerHTML = '';
+            const container = document.getElementById('jogos-container');
+            container.innerHTML = '';
             
-            jogos.forEach((jogo, index) => {
-                div.innerHTML += `
-                    <div class="jogo">
-                        <strong>${jogo.time1} x ${jogo.time2}</strong> (${jogo.data})
-                        <br>
-                        <input type="number" id="g1_${index}" placeholder="${jogo.time1}"> x 
-                        <input type="number" id="g2_${index}" placeholder="${jogo.time2}">
+            jogos.forEach((jogo, i) => {
+                const palpite = usuarioAtual.palpites?.find(p => p.jogoId === jogo.id);
+                container.innerHTML += `
+                    <div class="jogo" data-id="${jogo.id}">
+                        <strong>${jogo.time1} x ${jogo.time2}</strong> (${jogo.data})<br>
+                        <input type="number" class="g1" value="${palpite?.gols1 || ''}" placeholder="${jogo.time1}"> x 
+                        <input type="number" class="g2" value="${palpite?.gols2 || ''}" placeholder="${jogo.time2}">
                     </div>
                 `;
             });
         }
-    </script>
-</body>
-</html>
-        restaurarSessao();
+        
+        function salvarPalpites() {
+            const palpites = [];
+            document.querySelectorAll('.jogo').forEach(div => {
+                const jogoId = parseInt(div.dataset.id);
+                const g1 = parseInt(div.querySelector('.g1').value);
+                const g2 = parseInt(div.querySelector('.g2').value);
+                if (!isNaN(g1) && !isNaN(g2)) {
+                    palpites.push({ jogoId, gols1: g1, gols2: g2 });
+                }
+            });
+            
+            if (palpites.length !== jogos.length) {
+                alert('Preencha todos os jogos!');
+                return;
+            }
+            
+            usuarioAtual.palpites = palpites;
+            alert('✅ Palpites salvos!');
+            atualizarRanking();
+        }
+        
+        function calcularPontos(p) {
+            let total = 0;
+            p.palpites?.forEach(palpite => {
+                const jogo = jogos.find(j => j.id === palpite.jogoId);
+                if (jogo?.gols1 != null) {
+                    if (palpite.gols1 === jogo.gols1 && palpite.gols2 === jogo.gols2) {
+                        total += 3;
+                    } else {
+                        const resJogo = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
+                        const resPalpite = palpite.gols1 > palpite.gols2 ? 1 : palpite.gols2 > palpite.gols1 ? 2 : 0;
+                        if (resJogo === resPalpite) total += 1;
+                    }
+                }
+            });
+            return total;
+        }
+        
+        function atualizarRanking() {
+            const ranking = participantes
+                .filter(p => p.pago)
+                .map(p => ({ nome: p.nome, total: calcularPontos(p) }))
+                .sort((a, b) => b.total - a.total);
+            
+            const tbody = document.getElementById('ranking-body');
+            tbody.innerHTML = ranking.map((p, i) => `
+                <tr ${i === 0 ? 'class="primeiro"' : ''}>
+                    <td>${i+1}º</td>
+                    <td>${p.nome}</td>
+                    <td><strong>${p.total}</strong></td>
+                </tr>
+            `).join('');
+        }
+        
+        function mudarAba(aba) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+            document.querySelectorAll('.conteudo').forEach(c => c.classList.remove('ativo'));
+            event.target.classList.add('ativo');
+            document.getElementById(`aba-${aba}`).classList.add('ativo');
+        }
     </script>
 </body>
 </html>
