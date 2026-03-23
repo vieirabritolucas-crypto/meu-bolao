@@ -78,6 +78,16 @@
             font-weight: bold;
             font-size: 16px;
         }
+        .time-nome {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .time-escudo {
+            font-size: 24px;
+            width: 32px;
+            text-align: center;
+        }
         .resultado-final {
             background: #e8f4fd;
             padding: 10px;
@@ -103,6 +113,9 @@
             border-radius: 40px;
             flex: 1;
         }
+        .time-placar .escudo {
+            font-size: 20px;
+        }
         .time-placar label {
             font-weight: 600;
             min-width: 70px;
@@ -115,10 +128,6 @@
             border-radius: 30px;
             text-align: center;
             font-size: 14px;
-        }
-        .time-placar input:disabled {
-            background: #f0f0f0;
-            color: #999;
         }
         
         table { 
@@ -152,14 +161,6 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        .vencedor-nome {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .vencedor-pontos {
-            font-size: 32px;
-            font-weight: bold;
-        }
         
         .btn-primario { 
             padding: 12px 30px; 
@@ -184,16 +185,6 @@
             padding: 8px 16px;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 12px;
-        }
-        .btn-exportar {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 30px;
-            cursor: pointer;
-            margin: 5px;
             font-size: 12px;
         }
         
@@ -231,17 +222,6 @@
             font-size: 14px;
         }
         
-        .tabela-palpites {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-        .tabela-palpites th, .tabela-palpites td {
-            padding: 6px;
-            border: 1px solid #ddd;
-        }
-        .tabela-palpites th { background: #667eea; color: white; }
-        
         @media (max-width: 600px) {
             .container { padding: 15px; }
             .time-placar { flex-direction: column; text-align: center; }
@@ -271,7 +251,6 @@
                 <div class="tab ativo" onclick="mudarAba('palpites')">📊 Palpites</div>
                 <div class="tab" onclick="mudarAba('ranking')">🏆 Ranking</div>
                 <div class="tab" onclick="mudarAba('grupo')">👥 Palpites Grupo</div>
-                <div class="tab" onclick="mudarAba('exportar')">📥 Exportar</div>
             </div>
             
             <!-- ABA PALPITES -->
@@ -304,7 +283,7 @@
                                 <th>Total</th>
                              '</thead>
                         <tbody id="ranking-body"></tbody>
-                    </table>
+                    }</table>
                 </div>
             </div>
             
@@ -316,19 +295,43 @@
                     <div id="palpites-grupo-container"></div>
                 </div>
             </div>
-            
-            <!-- ABA EXPORTAR -->
-            <div id="aba-exportar" class="conteudo">
-                <div class="card">
-                    <h2>📥 Exportar Apostas</h2>
-                    <button onclick="exportarCSV()" class="btn-exportar">📊 CSV (Excel)</button>
-                    <button onclick="exportarTXT()" class="btn-exportar">📝 TXT</button>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
+        // ========== ESCUDOS DOS TIMES BRASILEIROS ==========
+        const escudos = {
+            // Série A
+            "FLUMINENSE": "🔴⚪", "FLUMINENSE": "🔴⚪",
+            "FLUMINENSE": "🔴⚪", "ATHLETICO PR": "⚫🔴",
+            "INTERNACIONAL": "🔴⚪", "BAHIA": "🔵🔴⚪",
+            "SANTOS": "⚪⚫", "CORINTHIANS": "⚪⚫",
+            "PALMEIRAS": "🟢⚪", "MIRASOL": "🟢⚪",
+            "CRUZEIRO": "🔵⚪", "VASCO": "⚫⚪",
+            "BRAGANTINO": "⚪🔴", "SÃO PAULO": "🔴⚪⚫",
+            "CORITIBA": "🟢⚪", "REMO": "🔵⚪",
+            "GRÊMIO": "🔵⚪⚫", "VITÓRIA": "🔴⚪⚫",
+            "FLAMENGO": "🔴⚫", "BOTAFOGO": "⚫⚪",
+            "ATLÉTICO MG": "⚪⚫", "ATLÉTICO-MG": "⚪⚫",
+            "CEARÁ": "⚫⚪🔵", "FORTALEZA": "🔵⚪🔴",
+            "GOIÁS": "🟢⚪", "AMÉRICA-MG": "🟢⚪",
+            "JUVENTUDE": "🟢⚪", "CUIABÁ": "🟢🔵",
+            // Padrão para outros times
+            "default": "⚽"
+        };
+        
+        function getEscudo(time) {
+            const nomeTime = time.toUpperCase().trim();
+            // Tenta encontrar o escudo
+            for (let [key, value] of Object.entries(escudos)) {
+                if (nomeTime.includes(key) || key.includes(nomeTime)) {
+                    return value;
+                }
+            }
+            // Se não encontrar, retorna uma bola como padrão
+            return "⚽";
+        }
+        
         // ========== CONFIGURAÇÃO FIREBASE ==========
         const firebaseConfig = {
             apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
@@ -352,12 +355,7 @@
         // ========== CARREGAR DADOS ==========
         db.ref('jogos').on('value', (snap) => {
             const data = snap.val();
-            if (data) {
-                todosJogos = Object.values(data);
-                console.log('Jogos carregados:', todosJogos);
-            } else {
-                todosJogos = [];
-            }
+            todosJogos = data ? Object.values(data) : [];
             if (usuarioAtual) {
                 mostrarJogos();
                 mostrarPalpitesGrupo();
@@ -449,12 +447,11 @@
             }
         }
         
-        // ========== FUNÇÕES DE PRAZO ==========
         function prazoExpirado() {
             return prazoFinal ? new Date() > new Date(prazoFinal) : false;
         }
         
-        // ========== MOSTRAR JOGOS (COM RESULTADOS CORRETOS) ==========
+        // ========== MOSTRAR JOGOS COM ESCUDOS ==========
         function mostrarJogos() {
             const container = document.getElementById('jogos-container');
             if (!container) return;
@@ -474,8 +471,9 @@
                 if (!jogo || !jogo.time1) return;
                 
                 const palpite = usuarioAtual.palpites?.find(p => p && p.jogoId === jogo.id);
+                const escudo1 = getEscudo(jogo.time1);
+                const escudo2 = getEscudo(jogo.time2);
                 
-                // VERIFICAÇÃO CORRETA DO RESULTADO
                 const temResultado = jogo.gols1 !== null && jogo.gols1 !== undefined && 
                                     jogo.gols2 !== null && jogo.gols2 !== undefined;
                 
@@ -483,27 +481,33 @@
                 if (temResultado) {
                     resultadoHTML = `
                         <div class="resultado-final">
-                            🏁 RESULTADO: ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${jogo.time2}
+                            🏁 RESULTADO: ${escudo1} ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${escudo2} ${jogo.time2}
                         </div>
                     `;
                 }
                 
-                // Campos ficam desabilitados se o jogo já tem resultado OU prazo expirou
                 const disabled = (temResultado || expirado) ? 'disabled' : '';
                 
                 container.innerHTML += `
                     <div class="jogo-card" data-jogo-id="${jogo.id}">
                         <div class="jogo-header">
-                            <span>⚽ ${jogo.time1} x ${jogo.time2}</span>
+                            <span class="time-nome">
+                                <span class="time-escudo">${escudo1}</span>
+                                ${jogo.time1} x 
+                                <span class="time-escudo">${escudo2}</span>
+                                ${jogo.time2}
+                            </span>
                             <span>${jogo.data || '--/--'}</span>
                         </div>
                         ${resultadoHTML}
                         <div class="placar-container">
                             <div class="time-placar">
+                                <span class="escudo">${escudo1}</span>
                                 <label>${jogo.time1}:</label>
                                 <input type="number" class="gols1" value="${palpite?.gols1 !== undefined ? palpite.gols1 : ''}" min="0" max="10" ${disabled}>
                             </div>
                             <div class="time-placar">
+                                <span class="escudo">${escudo2}</span>
                                 <label>${jogo.time2}:</label>
                                 <input type="number" class="gols2" value="${palpite?.gols2 !== undefined ? palpite.gols2 : ''}" min="0" max="10" ${disabled}>
                             </div>
@@ -529,7 +533,6 @@
                 const gols2 = div.querySelector('.gols2').value;
                 const input1 = div.querySelector('.gols1');
                 
-                // Só verifica se o campo não está disabled
                 if (!input1.disabled) {
                     if (gols1 === '' || gols2 === '') {
                         todosPreenchidos = false;
@@ -537,11 +540,8 @@
                     }
                     palpites.push({ jogoId, gols1: parseInt(gols1), gols2: parseInt(gols2) });
                 } else {
-                    // Para jogos com resultado, mantém o palpite antigo
                     const palpiteAntigo = usuarioAtual.palpites?.find(p => p && p.jogoId === jogoId);
-                    if (palpiteAntigo) {
-                        palpites.push(palpiteAntigo);
-                    }
+                    if (palpiteAntigo) palpites.push(palpiteAntigo);
                 }
             });
             
@@ -612,19 +612,15 @@
             }
             
             const tbody = document.getElementById('ranking-body');
-            if (ranking.length === 0) {
-                tbody.innerHTML = '}<tr><td colspan="5">Nenhum participante pagante</td></tr>';
-            } else {
-                tbody.innerHTML = ranking.map((p, i) => `
-                    <tr ${i === 0 ? 'class="primeiro"' : ''}>
-                        <td>${i+1}º</td>
-                        <td>${p.nome}</td>
-                        <td>${p.p3}</td>
-                        <td>${p.p1}</td>
-                        <td><strong>${p.total}</strong></td>
-                    </tr>
-                `).join('');
-            }
+            tbody.innerHTML = ranking.map((p, i) => `
+                <tr ${i === 0 ? 'class="primeiro"' : ''}>
+                    <td>${i+1}º</td>
+                     <td>${p.nome}</td>
+                     <td>${p.p3}</td>
+                     <td>${p.p1}</td>
+                     <td><strong>${p.total}</strong></td>
+                 </tr>
+            `).join('');
         }
         
         // ========== PALPITES DO GRUPO ==========
@@ -648,11 +644,14 @@
             
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
-            let html = '<table class="tabela-palpites"><tr><th>Participante</th>';
+            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
+            html += '<thead><tr><th>Participante</th>';
             jogosOrdenados.forEach(j => {
-                html += `<th>${j.time1}<br>x<br>${j.time2}</th>`;
+                const escudo1 = getEscudo(j.time1);
+                const escudo2 = getEscudo(j.time2);
+                html += `<th>${escudo1} ${j.time1}<br>x<br>${escudo2} ${j.time2}</th>`;
             });
-            html += '</tr>';
+            html += '</tr></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += `<tr><td><strong>${p.nome}</strong></td>`;
@@ -662,86 +661,9 @@
                 });
                 html += '</tr>';
             });
-            html += '</table>';
+            html += '</tbody></table></div>';
             
             container.innerHTML = html;
-        }
-        
-        // ========== EXPORTAR ==========
-        function exportarCSV() {
-            if (!prazoExpirado()) {
-                alert('Aguarde o prazo encerrar para exportar.');
-                return;
-            }
-            
-            const pagantes = todosParticipantes.filter(p => p && p.pago === true);
-            if (pagantes.length === 0) {
-                alert('Nenhum participante pagante.');
-                return;
-            }
-            
-            const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
-            
-            let csv = 'Participante';
-            jogosOrdenados.forEach(j => {
-                csv += `,${j.time1} x ${j.time2}`;
-            });
-            csv += '\n';
-            
-            pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                csv += p.nome;
-                jogosOrdenados.forEach(j => {
-                    const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    csv += `,${palpite ? `${palpite.gols1}-${palpite.gols2}` : '---'}`;
-                });
-                csv += '\n';
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `apostas_${new Date().toLocaleDateString()}.csv`;
-            a.click();
-        }
-        
-        function exportarTXT() {
-            if (!prazoExpirado()) {
-                alert('Aguarde o prazo encerrar para exportar.');
-                return;
-            }
-            
-            const pagantes = todosParticipantes.filter(p => p && p.pago === true);
-            if (pagantes.length === 0) {
-                alert('Nenhum participante pagante.');
-                return;
-            }
-            
-            const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
-            
-            let txt = `RELATÓRIO DE APOSTAS\n`;
-            txt += `Data: ${new Date().toLocaleString()}\n`;
-            txt += `Pagantes: ${pagantes.length}\n`;
-            txt += `='='='='='='='='='='='='='='='='='='\n\n`;
-            
-            jogosOrdenados.forEach(j => {
-                txt += `${j.time1} x ${j.time2}\n`;
-                txt += `='='='='='='='='='='='='='\n`;
-                pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                    const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    if (palpite) {
-                        txt += `${p.nome}: ${palpite.gols1} x ${palpite.gols2}\n`;
-                    }
-                });
-                txt += '\n';
-            });
-            
-            const blob = new Blob([txt], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `apostas_${new Date().toLocaleDateString()}.txt`;
-            a.click();
         }
         
         // ========== MUDAR ABA ==========
