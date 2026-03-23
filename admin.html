@@ -112,6 +112,25 @@
             justify-content: center;
         }
         
+        /* Estilo PIX */
+        .pix-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .pix-chave {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 16px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+        
         @media (max-width: 600px) {
             .container { padding: 12px; }
             .jogo-item { flex-direction: column; align-items: stretch; }
@@ -143,6 +162,7 @@
                 <span class="tab" onclick="mudarAba('resultados')">🎯 Resultados</span>
                 <span class="tab" onclick="mudarAba('pagamentos')">💰 Pagamentos</span>
                 <span class="tab" onclick="mudarAba('palpites')">👁️ Palpites</span>
+                <span class="tab" onclick="mudarAba('pix')">💳 PIX</span>
                 <span class="tab" onclick="mudarAba('config')">⚙️ Config</span>
             </div>
             
@@ -195,6 +215,21 @@
                 </div>
             </div>
             
+            <!-- ABA PIX (NOVA) -->
+            <div id="aba-pix" class="conteudo">
+                <div class="card">
+                    <h3>💳 Configurar Chave PIX</h3>
+                    <p>Digite a chave PIX que os jogadores devem usar para pagamento:</p>
+                    <input type="text" id="chave-pix" placeholder="Ex: 11999999999 ou email@email.com" style="width:100%; padding:10px; margin:10px 0;">
+                    <button onclick="salvarChavePix()">💾 Salvar Chave PIX</button>
+                    <div class="pix-card" style="margin-top: 20px;">
+                        <h4>📱 Visualização para o jogador:</h4>
+                        <div class="pix-chave" id="preview-chave-pix">Chave não configurada</div>
+                        <p style="font-size: 12px;">Os jogadores verão esta chave na aba "Pagamento"</p>
+                    </div>
+                </div>
+            </div>
+            
             <!-- ABA CONFIG -->
             <div id="aba-config" class="conteudo">
                 <div class="card">
@@ -236,6 +271,13 @@
         db.ref('jogos').on('value', (snap) => { jogos = snap.val() ? Object.values(snap.val()) : []; mostrarJogos(); mostrarResultados(); mostrarTabelaPalpites(); });
         db.ref('participantes').on('value', (snap) => { participantes = snap.val() ? Object.values(snap.val()) : []; mostrarPagamentos(); mostrarTabelaPalpites(); });
         db.ref('prazo').on('value', (snap) => { document.getElementById('prazo').value = snap.val() || '2026-03-21T19:00'; });
+        
+        // Carregar chave PIX
+        db.ref('config/chave_pix').on('value', (snap) => {
+            const chave = snap.val() || '';
+            document.getElementById('chave-pix').value = chave;
+            document.getElementById('preview-chave-pix').textContent = chave || 'Chave não configurada';
+        });
         
         // ========== LOGIN ADMIN ==========
         function verificarSenha() {
@@ -337,13 +379,10 @@
             alert('✅ Resultados salvos! Pontuação será atualizada.');
         }
         
-        // ========== FINALIZAR RODADA (MANTER JOGADORES) ==========
+        // ========== FINALIZAR RODADA ==========
         function finalizarRodada() {
-            if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e LIMPAR apenas os palpites. Os jogadores serão mantidos. Continuar?')) {
-                return;
-            }
+            if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e LIMPAR apenas os palpites. Os jogadores serão mantidos. Continuar?')) return;
             
-            // 1. Salvar histórico da rodada
             const historico = {
                 data: new Date().toISOString(),
                 jogos: jogos,
@@ -351,7 +390,6 @@
                 ranking: []
             };
             
-            // Calcular ranking
             const ranking = participantes.filter(p => p.pago).map(p => {
                 let total = 0;
                 p.palpites?.forEach(palpite => {
@@ -371,61 +409,33 @@
             historico.ranking = ranking;
             db.ref('historico').push(historico);
             
-            // 2. Limpar APENAS os palpites (MANTER jogadores e pagamentos)
-            participantes.forEach(p => {
-                p.palpites = [];
-                // NÃO limpar p.pago - mantém o status de pagamento
-            });
+            participantes.forEach(p => { p.palpites = []; });
+            jogos.forEach(j => { j.gols1 = null; j.gols2 = null; });
             
-            // 3. Limpar resultados dos jogos
-            jogos.forEach(j => {
-                j.gols1 = null;
-                j.gols2 = null;
-            });
-            
-            // 4. Atualizar número da rodada
-            db.ref('config/rodada').once('value', (snap) => {
-                let rodadaAtual = snap.val() || 1;
-                db.ref('config/rodada').set(rodadaAtual + 1);
-            });
-            
-            // 5. Salvar
             db.ref('participantes').set(participantes);
             db.ref('jogos').set(jogos);
             
             alert('✅ Rodada finalizada! Jogadores mantidos, palpites resetados.');
-            
-            mostrarJogos();
-            mostrarResultados();
-            mostrarPagamentos();
-            mostrarTabelaPalpites();
+            mostrarJogos(); mostrarResultados(); mostrarPagamentos(); mostrarTabelaPalpites();
         }
         
-        // ========== LIMPAR APENAS PALPITES ==========
         function limparApenasPalpites() {
             if (!confirm('⚠️ Isso vai LIMPAR TODOS OS PALPITES, mas manter os jogadores. Continuar?')) return;
-            
-            participantes.forEach(p => {
-                p.palpites = [];
-            });
-            
+            participantes.forEach(p => { p.palpites = []; });
             db.ref('participantes').set(participantes);
             alert('✅ Palpites limpos!');
-            mostrarPagamentos();
-            mostrarTabelaPalpites();
+            mostrarPagamentos(); mostrarTabelaPalpites();
         }
         
         // ========== EXCLUIR JOGADOR ==========
         function excluirJogador(celular) {
-            if (!confirm(`⚠️ Tem certeza que deseja EXCLUIR este jogador? Essa ação não pode ser desfeita.`)) return;
-            
+            if (!confirm(`⚠️ Tem certeza que deseja EXCLUIR este jogador?`)) return;
             const index = participantes.findIndex(p => p.celular === celular);
             if (index !== -1) {
                 participantes.splice(index, 1);
                 db.ref('participantes').set(participantes);
                 alert('✅ Jogador excluído!');
-                mostrarPagamentos();
-                mostrarTabelaPalpites();
+                mostrarPagamentos(); mostrarTabelaPalpites();
             }
         }
         
@@ -455,7 +465,7 @@
                             <button onclick="togglePago('${p.celular}')" style="background: ${p.pago ? '#e74c3c' : '#27ae60'}">
                                 ${p.pago ? '❌ Cancelar Pagamento' : '✅ Confirmar Pagamento'}
                             </button>
-                            <button onclick="excluirJogador('${p.celular}')" class="btn-excluir" style="background: #e74c3c;">🗑️ Excluir</button>
+                            <button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️ Excluir</button>
                         </div>
                     </div>
                 `;
@@ -481,23 +491,28 @@
             
             const jogosOrdenados = [...jogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
-            let html = '<table class="tabela-palpites">';
-            html += ' <thead> <tr> <th>Participante</th> <th>Pago</th>';
+            let html = '<table class="tabela-palpites"><thead><tr><th>Participante</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
-            html += ' <th>Ações</th> </tr> </thead> <tbody>';
+            html += '<th>Ações</th></tr></thead><tbody>';
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                html += ` <tr> <td><strong>${p.nome}</strong></td> <td>${p.pago ? '✅' : '❌'}</td>`;
+                html += `<tr><td><strong>${p.nome}</strong></td><td>${p.pago ? '✅' : '❌'}</td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp.jogoId === j.id);
                     html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
-                html += `<td><button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️ Excluir</button></td>`;
-                html += ' </tr>';
+                html += `<td><button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️</button></td></tr>`;
             });
-            html += ' </tbody> </table>';
+            html += '</tbody></table>';
             
             container.innerHTML = html;
+        }
+        
+        // ========== PIX ==========
+        function salvarChavePix() {
+            const chave = document.getElementById('chave-pix').value;
+            db.ref('config/chave_pix').set(chave);
+            alert('✅ Chave PIX salva!');
         }
         
         // ========== EXPORTAR CSV ==========
