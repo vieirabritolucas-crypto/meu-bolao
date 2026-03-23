@@ -222,6 +222,38 @@
             font-size: 14px;
         }
         
+        /* PIX Styles */
+        .pix-card {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .pix-chave {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 18px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+        .status-pagamento {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 30px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        .status-pago {
+            background: #d4edda;
+            color: #155724;
+        }
+        
         @media (max-width: 600px) {
             .container { padding: 15px; }
             .time-placar { flex-direction: column; text-align: center; }
@@ -251,6 +283,7 @@
                 <div class="tab ativo" onclick="mudarAba('palpites')">📊 Palpites</div>
                 <div class="tab" onclick="mudarAba('ranking')">🏆 Ranking</div>
                 <div class="tab" onclick="mudarAba('grupo')">👥 Palpites Grupo</div>
+                <div class="tab" onclick="mudarAba('pagamento')">💳 Pagamento</div>
             </div>
             
             <!-- ABA PALPITES -->
@@ -275,15 +308,16 @@
                     </div>
                      <table>
                         <thead>
-                            <tr>
+                             <tr>
                                 <th>Pos</th>
                                 <th>Nome</th>
                                 <th>3pts</th>
                                 <th>1pt</th>
                                 <th>Total</th>
-                             '</thead>
+                             </tr>
+                        </thead>
                         <tbody id="ranking-body"></tbody>
-                    }</table>
+                    </table>
                 </div>
             </div>
             
@@ -295,14 +329,27 @@
                     <div id="palpites-grupo-container"></div>
                 </div>
             </div>
+            
+            <!-- ABA PAGAMENTO (NOVA) -->
+            <div id="aba-pagamento" class="conteudo">
+                <div class="card">
+                    <h2>💳 Pagamento</h2>
+                    <div id="status-pagamento" class="status-pagamento">Carregando...</div>
+                    <div class="pix-card">
+                        <p style="font-size: 16px; margin-bottom: 10px;">📱 Pague via PIX:</p>
+                        <div class="pix-chave" id="chave-pix">Carregando chave...</div>
+                        <button onclick="copiarChavePix()" class="btn-primario" style="background: white; color: #27ae60; margin-top: 10px;">📋 Copiar Chave PIX</button>
+                        <p style="font-size: 12px; margin-top: 15px;">Após o pagamento, clique no botão abaixo para confirmar:</p>
+                        <button onclick="confirmarPagamento()" id="btn-confirmar-pagamento" style="background: #f39c12;">✅ Já paguei</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // ========== ESCUDOS DOS TIMES BRASILEIROS ==========
         const escudos = {
-            // Série A
-            "FLUMINENSE": "🔴⚪", "FLUMINENSE": "🔴⚪",
             "FLUMINENSE": "🔴⚪", "ATHLETICO PR": "⚫🔴",
             "INTERNACIONAL": "🔴⚪", "BAHIA": "🔵🔴⚪",
             "SANTOS": "⚪⚫", "CORINTHIANS": "⚪⚫",
@@ -312,23 +359,17 @@
             "CORITIBA": "🟢⚪", "REMO": "🔵⚪",
             "GRÊMIO": "🔵⚪⚫", "VITÓRIA": "🔴⚪⚫",
             "FLAMENGO": "🔴⚫", "BOTAFOGO": "⚫⚪",
-            "ATLÉTICO MG": "⚪⚫", "ATLÉTICO-MG": "⚪⚫",
-            "CEARÁ": "⚫⚪🔵", "FORTALEZA": "🔵⚪🔴",
-            "GOIÁS": "🟢⚪", "AMÉRICA-MG": "🟢⚪",
-            "JUVENTUDE": "🟢⚪", "CUIABÁ": "🟢🔵",
-            // Padrão para outros times
+            "ATLÉTICO MG": "⚪⚫", "CEARÁ": "⚫⚪🔵",
             "default": "⚽"
         };
         
         function getEscudo(time) {
             const nomeTime = time.toUpperCase().trim();
-            // Tenta encontrar o escudo
             for (let [key, value] of Object.entries(escudos)) {
                 if (nomeTime.includes(key) || key.includes(nomeTime)) {
                     return value;
                 }
             }
-            // Se não encontrar, retorna uma bola como padrão
             return "⚽";
         }
         
@@ -352,6 +393,12 @@
         let prazoFinal = null;
         let config = { valorAposta: 10, percentualPremio: 80 };
         
+        // Carregar chave PIX
+        db.ref('config/chave_pix').on('value', (snap) => {
+            const chave = snap.val() || 'Chave não cadastrada';
+            document.getElementById('chave-pix').textContent = chave;
+        });
+        
         // ========== CARREGAR DADOS ==========
         db.ref('jogos').on('value', (snap) => {
             const data = snap.val();
@@ -370,6 +417,7 @@
                 usuarioAtual = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
                 atualizarRanking();
                 mostrarPalpitesGrupo();
+                atualizarStatusPagamento();
             }
         });
         
@@ -422,6 +470,7 @@
             mostrarJogos();
             atualizarRanking();
             mostrarPalpitesGrupo();
+            atualizarStatusPagamento();
         }
         
         function logout() {
@@ -443,6 +492,7 @@
                     mostrarJogos();
                     atualizarRanking();
                     mostrarPalpitesGrupo();
+                    atualizarStatusPagamento();
                 }
             }
         }
@@ -451,7 +501,49 @@
             return prazoFinal ? new Date() > new Date(prazoFinal) : false;
         }
         
-        // ========== MOSTRAR JOGOS COM ESCUDOS ==========
+        function atualizarStatusPagamento() {
+            const statusDiv = document.getElementById('status-pagamento');
+            if (usuarioAtual && usuarioAtual.pago) {
+                statusDiv.innerHTML = '✅ Pagamento confirmado! Você já pode fazer seus palpites.';
+                statusDiv.className = 'status-pagamento status-pago';
+                document.getElementById('btn-confirmar-pagamento').style.display = 'none';
+            } else {
+                statusDiv.innerHTML = `⏳ Pagamento pendente. Faça um PIX de R$ ${config.valorAposta} para a chave abaixo e confirme.`;
+                statusDiv.className = 'status-pagamento';
+                document.getElementById('btn-confirmar-pagamento').style.display = 'inline-block';
+            }
+        }
+        
+        function copiarChavePix() {
+            const chave = document.getElementById('chave-pix').textContent;
+            navigator.clipboard.writeText(chave);
+            alert('✅ Chave PIX copiada!');
+        }
+        
+        function confirmarPagamento() {
+            if (!usuarioAtual) return;
+            
+            if (confirm(`Confirme que você fez o pagamento de R$ ${config.valorAposta} para a chave PIX.`)) {
+                usuarioAtual.pago = true;
+                
+                db.ref('participantes').once('value', (snap) => {
+                    const data = snap.val();
+                    if (data) {
+                        for (let key in data) {
+                            if (data[key].celular === usuarioAtual.celular) {
+                                db.ref('participantes/' + key).set(usuarioAtual);
+                                break;
+                            }
+                        }
+                    }
+                });
+                
+                alert('✅ Pagamento registrado! Aguarde a confirmação do administrador.');
+                atualizarStatusPagamento();
+            }
+        }
+        
+        // ========== MOSTRAR JOGOS ==========
         function mostrarJogos() {
             const container = document.getElementById('jogos-container');
             if (!container) return;
@@ -519,6 +611,11 @@
         
         // ========== SALVAR PALPITES ==========
         function salvarPalpites() {
+            if (!usuarioAtual.pago) {
+                alert('❌ Você precisa confirmar o pagamento antes de salvar palpites!');
+                return;
+            }
+            
             if (prazoExpirado()) {
                 alert('❌ Prazo encerrado! Não é mais possível salvar.');
                 return;
@@ -614,7 +711,7 @@
             const tbody = document.getElementById('ranking-body');
             tbody.innerHTML = ranking.map((p, i) => `
                 <tr ${i === 0 ? 'class="primeiro"' : ''}>
-                    <td>${i+1}º</td>
+                     <td>${i+1}º</td>
                      <td>${p.nome}</td>
                      <td>${p.p3}</td>
                      <td>${p.p1}</td>
@@ -645,7 +742,7 @@
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
-            html += '<thead><tr><th>Participante</th>';
+            html += '<thead> <tr><th>Participante</th>';
             jogosOrdenados.forEach(j => {
                 const escudo1 = getEscudo(j.time1);
                 const escudo2 = getEscudo(j.time2);
@@ -675,6 +772,7 @@
             
             if (aba === 'ranking') atualizarRanking();
             if (aba === 'grupo') mostrarPalpitesGrupo();
+            if (aba === 'pagamento') atualizarStatusPagamento();
         }
         
         // ========== INICIALIZAR ==========
