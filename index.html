@@ -63,13 +63,17 @@
             margin-bottom: 20px; 
         }
         
+        /* Jogos */
         .jogo-card {
             background: white;
             border-radius: 12px;
             padding: 15px;
             margin: 12px 0;
-            border-left: 5px solid #667eea;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: 0.2s;
+        }
+        .jogo-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         .jogo-header {
             display: flex;
@@ -77,16 +81,27 @@
             margin-bottom: 12px;
             font-weight: bold;
             font-size: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .time-nome {
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
-        .time-escudo {
-            font-size: 24px;
-            width: 32px;
-            text-align: center;
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
         .resultado-final {
             background: #e8f4fd;
@@ -97,6 +112,7 @@
             font-weight: 600;
             font-size: 14px;
             color: #2c3e50;
+            border-left: 4px solid #667eea;
         }
         .placar-container {
             display: flex;
@@ -107,14 +123,16 @@
         .time-placar {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             background: #f5f5f5;
-            padding: 8px 12px;
+            padding: 8px 15px;
             border-radius: 40px;
             flex: 1;
         }
-        .time-placar .escudo {
-            font-size: 20px;
+        .time-placar .time-badge {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
         }
         .time-placar label {
             font-weight: 600;
@@ -130,6 +148,7 @@
             font-size: 14px;
         }
         
+        /* Tabela */
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -222,7 +241,6 @@
             font-size: 14px;
         }
         
-        /* PIX Styles */
         .pix-card {
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             color: white;
@@ -237,7 +255,7 @@
             padding: 15px;
             border-radius: 10px;
             font-family: monospace;
-            font-size: 18px;
+            font-size: 16px;
             margin: 15px 0;
             word-break: break-all;
         }
@@ -258,6 +276,7 @@
             .container { padding: 15px; }
             .time-placar { flex-direction: column; text-align: center; }
             .time-placar label { min-width: auto; }
+            .time-badge { width: 28px; height: 28px; font-size: 10px; }
         }
     </style>
 </head>
@@ -306,7 +325,7 @@
                         <div class="vencedor-pontos" id="lider-pontos">0</div>
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
-                     <table>
+                      <table>
                         <thead>
                              <tr>
                                 <th>Pos</th>
@@ -314,10 +333,10 @@
                                 <th>3pts</th>
                                 <th>1pt</th>
                                 <th>Total</th>
-                             </tr>
+                              </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                    </table>
+                     </table>
                 </div>
             </div>
             
@@ -330,7 +349,7 @@
                 </div>
             </div>
             
-            <!-- ABA PAGAMENTO (NOVA) -->
+            <!-- ABA PAGAMENTO -->
             <div id="aba-pagamento" class="conteudo">
                 <div class="card">
                     <h2>💳 Pagamento</h2>
@@ -348,29 +367,44 @@
     </div>
 
     <script>
-        // ========== ESCUDOS DOS TIMES BRASILEIROS ==========
-        const escudos = {
-            "FLUMINENSE": "🔴⚪", "ATHLETICO PR": "⚫🔴",
-            "INTERNACIONAL": "🔴⚪", "BAHIA": "🔵🔴⚪",
-            "SANTOS": "⚪⚫", "CORINTHIANS": "⚪⚫",
-            "PALMEIRAS": "🟢⚪", "MIRASOL": "🟢⚪",
-            "CRUZEIRO": "🔵⚪", "VASCO": "⚫⚪",
-            "BRAGANTINO": "⚪🔴", "SÃO PAULO": "🔴⚪⚫",
-            "CORITIBA": "🟢⚪", "REMO": "🔵⚪",
-            "GRÊMIO": "🔵⚪⚫", "VITÓRIA": "🔴⚪⚫",
-            "FLAMENGO": "🔴⚫", "BOTAFOGO": "⚫⚪",
-            "ATLÉTICO MG": "⚪⚫", "CEARÁ": "⚫⚪🔵",
-            "default": "⚽"
+        // ========== CORES DOS TIMES BRASILEIROS ==========
+        const coresTimes = {
+            // Série A
+            "FLUMINENSE": { cor: "#960018", letra: "F" },
+            "FLUMINENSE": { cor: "#960018", letra: "F" },
+            "ATHLETICO PR": { cor: "#000000", letra: "A" },
+            "INTERNACIONAL": { cor: "#FF0000", letra: "I" },
+            "BAHIA": { cor: "#0000FF", letra: "B" },
+            "SANTOS": { cor: "#000000", letra: "S" },
+            "CORINTHIANS": { cor: "#000000", letra: "C" },
+            "PALMEIRAS": { cor: "#006437", letra: "P" },
+            "MIRASOL": { cor: "#006437", letra: "M" },
+            "CRUZEIRO": { cor: "#0000FF", letra: "C" },
+            "VASCO": { cor: "#000000", letra: "V" },
+            "SÃO PAULO": { cor: "#FF0000", letra: "S" },
+            "BRAGANTINO": { cor: "#FF0000", letra: "B" },
+            "CORITIBA": { cor: "#006437", letra: "C" },
+            "GRÊMIO": { cor: "#0000FF", letra: "G" },
+            "VITÓRIA": { cor: "#FF0000", letra: "V" },
+            "FLAMENGO": { cor: "#FF0000", letra: "F" },
+            "BOTAFOGO": { cor: "#000000", letra: "B" },
+            "ATLÉTICO MG": { cor: "#000000", letra: "A" },
+            "CEARÁ": { cor: "#000000", letra: "C" },
+            "FORTALEZA": { cor: "#0000FF", letra: "F" },
+            "GOIÁS": { cor: "#006437", letra: "G" },
+            // Padrão
+            "default": { cor: "#667eea", letra: "⚽" }
         };
         
-        function getEscudo(time) {
+        function getTimeBadge(time) {
             const nomeTime = time.toUpperCase().trim();
-            for (let [key, value] of Object.entries(escudos)) {
+            // Tenta encontrar o time
+            for (let [key, value] of Object.entries(coresTimes)) {
                 if (nomeTime.includes(key) || key.includes(nomeTime)) {
-                    return value;
+                    return `<span class="time-badge" style="background: ${value.cor};">${value.letra}</span>`;
                 }
             }
-            return "⚽";
+            return `<span class="time-badge" style="background: #667eea;">⚽</span>`;
         }
         
         // ========== CONFIGURAÇÃO FIREBASE ==========
@@ -543,7 +577,7 @@
             }
         }
         
-        // ========== MOSTRAR JOGOS ==========
+        // ========== MOSTRAR JOGOS COM CORES ==========
         function mostrarJogos() {
             const container = document.getElementById('jogos-container');
             if (!container) return;
@@ -563,8 +597,8 @@
                 if (!jogo || !jogo.time1) return;
                 
                 const palpite = usuarioAtual.palpites?.find(p => p && p.jogoId === jogo.id);
-                const escudo1 = getEscudo(jogo.time1);
-                const escudo2 = getEscudo(jogo.time2);
+                const badge1 = getTimeBadge(jogo.time1);
+                const badge2 = getTimeBadge(jogo.time2);
                 
                 const temResultado = jogo.gols1 !== null && jogo.gols1 !== undefined && 
                                     jogo.gols2 !== null && jogo.gols2 !== undefined;
@@ -573,7 +607,7 @@
                 if (temResultado) {
                     resultadoHTML = `
                         <div class="resultado-final">
-                            🏁 RESULTADO: ${escudo1} ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${escudo2} ${jogo.time2}
+                            🏁 RESULTADO: ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${jogo.time2}
                         </div>
                     `;
                 }
@@ -583,23 +617,20 @@
                 container.innerHTML += `
                     <div class="jogo-card" data-jogo-id="${jogo.id}">
                         <div class="jogo-header">
-                            <span class="time-nome">
-                                <span class="time-escudo">${escudo1}</span>
-                                ${jogo.time1} x 
-                                <span class="time-escudo">${escudo2}</span>
-                                ${jogo.time2}
-                            </span>
+                            <div class="time-nome">
+                                ${badge1} ${jogo.time1} x ${badge2} ${jogo.time2}
+                            </div>
                             <span>${jogo.data || '--/--'}</span>
                         </div>
                         ${resultadoHTML}
                         <div class="placar-container">
                             <div class="time-placar">
-                                <span class="escudo">${escudo1}</span>
+                                ${badge1}
                                 <label>${jogo.time1}:</label>
                                 <input type="number" class="gols1" value="${palpite?.gols1 !== undefined ? palpite.gols1 : ''}" min="0" max="10" ${disabled}>
                             </div>
                             <div class="time-placar">
-                                <span class="escudo">${escudo2}</span>
+                                ${badge2}
                                 <label>${jogo.time2}:</label>
                                 <input type="number" class="gols2" value="${palpite?.gols2 !== undefined ? palpite.gols2 : ''}" min="0" max="10" ${disabled}>
                             </div>
@@ -742,23 +773,23 @@
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
-            html += '<thead> <tr><th>Participante</th>';
+            html += '<thead> <tr> <th>Participante</th>';
             jogosOrdenados.forEach(j => {
-                const escudo1 = getEscudo(j.time1);
-                const escudo2 = getEscudo(j.time2);
-                html += `<th>${escudo1} ${j.time1}<br>x<br>${escudo2} ${j.time2}</th>`;
+                const badge1 = getTimeBadge(j.time1);
+                const badge2 = getTimeBadge(j.time2);
+                html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
             });
-            html += '</tr></thead><tbody>';
+            html += ' </tr> </thead> <tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                html += `<tr><td><strong>${p.nome}</strong></td>`;
+                html += ` <tr> <td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
                     html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
-                html += '</tr>';
+                html += ' </tr>';
             });
-            html += '</tbody></table></div>';
+            html += '</tbody> </table> </div>';
             
             container.innerHTML = html;
         }
