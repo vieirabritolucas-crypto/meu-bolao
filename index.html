@@ -63,17 +63,13 @@
             margin-bottom: 20px; 
         }
         
-        /* Jogos */
         .jogo-card {
             background: white;
             border-radius: 12px;
             padding: 15px;
             margin: 12px 0;
+            border-left: 5px solid #667eea;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: 0.2s;
-        }
-        .jogo-card:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         .jogo-header {
             display: flex;
@@ -81,27 +77,22 @@
             margin-bottom: 12px;
             font-weight: bold;
             font-size: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
         }
         .time-nome {
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
         }
         .time-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
             color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
         .resultado-final {
             background: #e8f4fd;
@@ -112,7 +103,6 @@
             font-weight: 600;
             font-size: 14px;
             color: #2c3e50;
-            border-left: 4px solid #667eea;
         }
         .placar-container {
             display: flex;
@@ -123,16 +113,16 @@
         .time-placar {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: #f5f5f5;
-            padding: 8px 15px;
+            padding: 8px 12px;
             border-radius: 40px;
             flex: 1;
         }
         .time-placar .time-badge {
-            width: 32px;
-            height: 32px;
-            font-size: 12px;
+            width: 28px;
+            height: 28px;
+            font-size: 11px;
         }
         .time-placar label {
             font-weight: 600;
@@ -148,7 +138,6 @@
             font-size: 14px;
         }
         
-        /* Tabela */
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -272,11 +261,27 @@
             color: #155724;
         }
         
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .badge-pendente {
+            background: #f39c12;
+            color: white;
+        }
+        .badge-pago {
+            background: #27ae60;
+            color: white;
+        }
+        
         @media (max-width: 600px) {
             .container { padding: 15px; }
             .time-placar { flex-direction: column; text-align: center; }
             .time-placar label { min-width: auto; }
-            .time-badge { width: 28px; height: 28px; font-size: 10px; }
         }
     </style>
 </head>
@@ -309,6 +314,7 @@
             <div id="aba-palpites" class="conteudo ativo">
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
+                    <div id="status-pagamento" class="status-pagamento">Carregando...</div>
                     <div id="prazo-info" class="aviso" style="background: #e8f4fd; color:#333;"></div>
                     <div id="jogos-container">Carregando jogos...</div>
                     <button class="btn-primario" onclick="salvarPalpites()">💾 Salvar Palpites</button>
@@ -325,9 +331,10 @@
                         <div class="vencedor-pontos" id="lider-pontos">0</div>
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
+                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
                       <table>
                         <thead>
-                             <tr>
+                              <tr>
                                 <th>Pos</th>
                                 <th>Nome</th>
                                 <th>3pts</th>
@@ -336,7 +343,7 @@
                               </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                     </table>
+                      </table>
                 </div>
             </div>
             
@@ -353,7 +360,7 @@
             <div id="aba-pagamento" class="conteudo">
                 <div class="card">
                     <h2>💳 Pagamento</h2>
-                    <div id="status-pagamento" class="status-pagamento">Carregando...</div>
+                    <div id="status-pagamento-pix" class="status-pagamento">Carregando...</div>
                     <div class="pix-card">
                         <p style="font-size: 16px; margin-bottom: 10px;">📱 Pague via PIX:</p>
                         <div class="pix-chave" id="chave-pix">Carregando chave...</div>
@@ -369,8 +376,6 @@
     <script>
         // ========== CORES DOS TIMES BRASILEIROS ==========
         const coresTimes = {
-            // Série A
-            "FLUMINENSE": { cor: "#960018", letra: "F" },
             "FLUMINENSE": { cor: "#960018", letra: "F" },
             "ATHLETICO PR": { cor: "#000000", letra: "A" },
             "INTERNACIONAL": { cor: "#FF0000", letra: "I" },
@@ -389,16 +394,11 @@
             "FLAMENGO": { cor: "#FF0000", letra: "F" },
             "BOTAFOGO": { cor: "#000000", letra: "B" },
             "ATLÉTICO MG": { cor: "#000000", letra: "A" },
-            "CEARÁ": { cor: "#000000", letra: "C" },
-            "FORTALEZA": { cor: "#0000FF", letra: "F" },
-            "GOIÁS": { cor: "#006437", letra: "G" },
-            // Padrão
             "default": { cor: "#667eea", letra: "⚽" }
         };
         
         function getTimeBadge(time) {
             const nomeTime = time.toUpperCase().trim();
-            // Tenta encontrar o time
             for (let [key, value] of Object.entries(coresTimes)) {
                 if (nomeTime.includes(key) || key.includes(nomeTime)) {
                     return `<span class="time-badge" style="background: ${value.cor};">${value.letra}</span>`;
@@ -448,7 +448,8 @@
             const data = snap.val();
             todosParticipantes = data ? Object.values(data) : [];
             if (usuarioAtual) {
-                usuarioAtual = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
+                const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
+                if (encontrado) usuarioAtual = encontrado;
                 atualizarRanking();
                 mostrarPalpitesGrupo();
                 atualizarStatusPagamento();
@@ -537,14 +538,26 @@
         
         function atualizarStatusPagamento() {
             const statusDiv = document.getElementById('status-pagamento');
+            const statusPixDiv = document.getElementById('status-pagamento-pix');
+            
             if (usuarioAtual && usuarioAtual.pago) {
-                statusDiv.innerHTML = '✅ Pagamento confirmado! Você já pode fazer seus palpites.';
+                statusDiv.innerHTML = '✅ Pagamento confirmado! Você aparece no ranking.';
                 statusDiv.className = 'status-pagamento status-pago';
+                if (statusPixDiv) {
+                    statusPixDiv.innerHTML = '✅ Pagamento confirmado! Obrigado.';
+                    statusPixDiv.className = 'status-pagamento status-pago';
+                }
                 document.getElementById('btn-confirmar-pagamento').style.display = 'none';
+                document.getElementById('ranking-aviso').style.display = 'none';
             } else {
-                statusDiv.innerHTML = `⏳ Pagamento pendente. Faça um PIX de R$ ${config.valorAposta} para a chave abaixo e confirme.`;
+                statusDiv.innerHTML = `⏳ Pagamento pendente. Seus palpites já foram salvos, mas só aparecerão no ranking após o pagamento confirmado.`;
                 statusDiv.className = 'status-pagamento';
+                if (statusPixDiv) {
+                    statusPixDiv.innerHTML = `⏳ Faça um PIX de R$ ${config.valorAposta} para a chave abaixo e confirme.`;
+                    statusPixDiv.className = 'status-pagamento';
+                }
                 document.getElementById('btn-confirmar-pagamento').style.display = 'inline-block';
+                document.getElementById('ranking-aviso').style.display = 'block';
             }
         }
         
@@ -574,10 +587,11 @@
                 
                 alert('✅ Pagamento registrado! Aguarde a confirmação do administrador.');
                 atualizarStatusPagamento();
+                atualizarRanking();
             }
         }
         
-        // ========== MOSTRAR JOGOS COM CORES ==========
+        // ========== MOSTRAR JOGOS ==========
         function mostrarJogos() {
             const container = document.getElementById('jogos-container');
             if (!container) return;
@@ -642,11 +656,6 @@
         
         // ========== SALVAR PALPITES ==========
         function salvarPalpites() {
-            if (!usuarioAtual.pago) {
-                alert('❌ Você precisa confirmar o pagamento antes de salvar palpites!');
-                return;
-            }
-            
             if (prazoExpirado()) {
                 alert('❌ Prazo encerrado! Não é mais possível salvar.');
                 return;
@@ -723,6 +732,7 @@
         
         // ========== RANKING ==========
         function atualizarRanking() {
+            // SÓ PAGANTES aparecem no ranking
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
             const ranking = pagantes.map(p => ({
                 nome: p.nome,
@@ -742,12 +752,12 @@
             const tbody = document.getElementById('ranking-body');
             tbody.innerHTML = ranking.map((p, i) => `
                 <tr ${i === 0 ? 'class="primeiro"' : ''}>
-                     <td>${i+1}º</td>
-                     <td>${p.nome}</td>
-                     <td>${p.p3}</td>
-                     <td>${p.p1}</td>
-                     <td><strong>${p.total}</strong></td>
-                 </tr>
+                      <td>${i+1}º</td>
+                      <td>${p.nome}</td>
+                      <td>${p.p3}</td>
+                      <td>${p.p1}</td>
+                      <td><strong>${p.total}</strong></td>
+                  </tr>
             `).join('');
         }
         
@@ -785,7 +795,7 @@
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
+                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
                 html += ' </tr>';
             });
