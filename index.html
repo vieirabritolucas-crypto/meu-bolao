@@ -261,21 +261,68 @@
             color: #155724;
         }
         
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
+        /* Modal PIX */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
             border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 8px;
+            padding: 25px;
+            max-width: 350px;
+            text-align: center;
+            animation: fadeIn 0.3s;
         }
-        .badge-pendente {
-            background: #f39c12;
-            color: white;
+        @keyframes fadeIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-        .badge-pago {
+        .modal-content h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        .modal-pix-chave {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+        .modal-valor {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        .btn-fechar {
             background: #27ae60;
             color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-copiar {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 5px;
         }
         
         @media (max-width: 600px) {
@@ -291,6 +338,20 @@
             ⚽ Meu Bolão
             <button onclick="logout()" class="btn-sair" id="btnSair" style="display: none;">Sair</button>
         </h1>
+        
+        <!-- MODAL PIX -->
+        <div id="modalPix" class="modal">
+            <div class="modal-content">
+                <h3>💳 PAGUE SEUS PALPITES!</h3>
+                <p>Seus palpites foram salvos! ✅</p>
+                <p>Para participar do bolão, faça o PIX:</p>
+                <div class="modal-valor">💰 R$ <span id="modal-valor-aposta">10,00</span></div>
+                <div class="modal-pix-chave" id="modal-chave-pix">Carregando...</div>
+                <button class="btn-copiar" onclick="copiarChavePixModal()">📋 Copiar Chave PIX</button>
+                <p style="font-size: 12px; margin-top: 10px;">Após o pagamento, seu status será atualizado pelo admin.</p>
+                <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
+            </div>
+        </div>
         
         <!-- LOGIN -->
         <div id="login">
@@ -331,19 +392,19 @@
                         <div class="vencedor-pontos" id="lider-pontos">0</div>
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
-                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                      <table>
+                      <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
+                       <table>
                         <thead>
-                              <tr>
+                               <tr>
                                 <th>Pos</th>
                                 <th>Nome</th>
                                 <th>3pts</th>
                                 <th>1pt</th>
                                 <th>Total</th>
-                              </tr>
+                               </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                      </table>
+                       </table>
                 </div>
             </div>
             
@@ -374,31 +435,33 @@
     </div>
 
     <script>
-        // ========== CORES DOS TIMES BRASILEIROS ==========
+        // ========== CORES DOS TIMES ==========
         const coresTimes = {
             "FLUMINENSE": { cor: "#960018", letra: "F" },
-            "ATHLETICO PR": { cor: "#000000", letra: "A" },
-            "INTERNACIONAL": { cor: "#FF0000", letra: "I" },
-            "BAHIA": { cor: "#0000FF", letra: "B" },
-            "SANTOS": { cor: "#000000", letra: "S" },
             "CORINTHIANS": { cor: "#000000", letra: "C" },
             "PALMEIRAS": { cor: "#006437", letra: "P" },
-            "MIRASOL": { cor: "#006437", letra: "M" },
-            "CRUZEIRO": { cor: "#0000FF", letra: "C" },
-            "VASCO": { cor: "#000000", letra: "V" },
             "SÃO PAULO": { cor: "#FF0000", letra: "S" },
-            "BRAGANTINO": { cor: "#FF0000", letra: "B" },
-            "CORITIBA": { cor: "#006437", letra: "C" },
-            "GRÊMIO": { cor: "#0000FF", letra: "G" },
-            "VITÓRIA": { cor: "#FF0000", letra: "V" },
+            "SANTOS": { cor: "#000000", letra: "S" },
+            "VASCO": { cor: "#000000", letra: "V" },
             "FLAMENGO": { cor: "#FF0000", letra: "F" },
             "BOTAFOGO": { cor: "#000000", letra: "B" },
+            "INTERNACIONAL": { cor: "#FF0000", letra: "I" },
+            "GRÊMIO": { cor: "#0000FF", letra: "G" },
+            "CRUZEIRO": { cor: "#0000FF", letra: "C" },
             "ATLÉTICO MG": { cor: "#000000", letra: "A" },
+            "BAHIA": { cor: "#0000FF", letra: "B" },
+            "ATHLETICO PR": { cor: "#000000", letra: "A" },
+            "CORITIBA": { cor: "#006437", letra: "C" },
+            "CHAPECOENSE": { cor: "#006437", letra: "C" },
+            "MIRASOL": { cor: "#006437", letra: "M" },
+            "REMO": { cor: "#0000FF", letra: "R" },
+            "BRAGANTINO": { cor: "#FF0000", letra: "B" },
+            "VITÓRIA": { cor: "#FF0000", letra: "V" },
             "default": { cor: "#667eea", letra: "⚽" }
         };
         
         function getTimeBadge(time) {
-            const nomeTime = time.toUpperCase().trim();
+            const nomeTime = time?.toUpperCase().trim() || "";
             for (let [key, value] of Object.entries(coresTimes)) {
                 if (nomeTime.includes(key) || key.includes(nomeTime)) {
                     return `<span class="time-badge" style="background: ${value.cor};">${value.letra}</span>`;
@@ -426,14 +489,15 @@
         let todosParticipantes = [];
         let prazoFinal = null;
         let config = { valorAposta: 10, percentualPremio: 80 };
+        let chavePix = "";
         
         // Carregar chave PIX
         db.ref('config/chave_pix').on('value', (snap) => {
-            const chave = snap.val() || 'Chave não cadastrada';
-            document.getElementById('chave-pix').textContent = chave;
+            chavePix = snap.val() || 'Chave não cadastrada';
+            document.getElementById('chave-pix').textContent = chavePix;
         });
         
-        // ========== CARREGAR DADOS ==========
+        // Carregar dados
         db.ref('jogos').on('value', (snap) => {
             const data = snap.val();
             todosJogos = data ? Object.values(data) : [];
@@ -471,7 +535,30 @@
                 config.percentualPremio = data.percentualPremio || 80;
             }
             document.getElementById('info-valor').innerHTML = `💰 Aposta: R$ ${config.valorAposta} | 1º lugar: ${config.percentualPremio}%`;
+            document.getElementById('modal-valor-aposta').textContent = config.valorAposta.toFixed(2);
         });
+        
+        // ========== FUNÇÕES ==========
+        function mostrarModalPix() {
+            document.getElementById('modal-chave-pix').textContent = chavePix || 'Chave não cadastrada';
+            document.getElementById('modalPix').style.display = 'flex';
+        }
+        
+        function fecharModal() {
+            document.getElementById('modalPix').style.display = 'none';
+        }
+        
+        function copiarChavePixModal() {
+            const chave = document.getElementById('modal-chave-pix').textContent;
+            navigator.clipboard.writeText(chave);
+            alert('✅ Chave PIX copiada!');
+        }
+        
+        function copiarChavePix() {
+            const chave = document.getElementById('chave-pix').textContent;
+            navigator.clipboard.writeText(chave);
+            alert('✅ Chave PIX copiada!');
+        }
         
         // ========== LOGIN ==========
         function fazerLogin() {
@@ -561,12 +648,6 @@
             }
         }
         
-        function copiarChavePix() {
-            const chave = document.getElementById('chave-pix').textContent;
-            navigator.clipboard.writeText(chave);
-            alert('✅ Chave PIX copiada!');
-        }
-        
         function confirmarPagamento() {
             if (!usuarioAtual) return;
             
@@ -654,7 +735,7 @@
             });
         }
         
-        // ========== SALVAR PALPITES ==========
+        // ========== SALVAR PALPITES (COM MODAL PIX) ==========
         function salvarPalpites() {
             if (prazoExpirado()) {
                 alert('❌ Prazo encerrado! Não é mais possível salvar.');
@@ -695,7 +776,11 @@
                     for (let key in data) {
                         if (data[key].celular === usuarioAtual.celular) {
                             db.ref('participantes/' + key).set(usuarioAtual)
-                                .then(() => alert('✅ Palpites salvos!'));
+                                .then(() => {
+                                    alert('✅ Palpites salvos!');
+                                    // 🔥 MOSTRAR MODAL COM PIX 🔥
+                                    mostrarModalPix();
+                                });
                             break;
                         }
                     }
@@ -732,7 +817,6 @@
         
         // ========== RANKING ==========
         function atualizarRanking() {
-            // SÓ PAGANTES aparecem no ranking
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
             const ranking = pagantes.map(p => ({
                 nome: p.nome,
@@ -752,12 +836,12 @@
             const tbody = document.getElementById('ranking-body');
             tbody.innerHTML = ranking.map((p, i) => `
                 <tr ${i === 0 ? 'class="primeiro"' : ''}>
-                      <td>${i+1}º</td>
-                      <td>${p.nome}</td>
-                      <td>${p.p3}</td>
-                      <td>${p.p1}</td>
-                      <td><strong>${p.total}</strong></td>
-                  </tr>
+                     <td>${i+1}º</td>
+                     <td>${p.nome}</td>
+                     <td>${p.p3}</td>
+                     <td>${p.p1}</td>
+                     <td><strong>${p.total}</strong></td>
+                 </tr>
             `).join('');
         }
         
@@ -795,7 +879,7 @@
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
+                    html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
                 html += ' </tr>';
             });
