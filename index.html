@@ -261,7 +261,7 @@
             color: #155724;
         }
         
-        /* Modal PIX */
+        /* Modal PIX - CORRIGIDO */
         .modal {
             display: none;
             position: fixed;
@@ -269,39 +269,48 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
             justify-content: center;
             align-items: center;
         }
         .modal-content {
             background: white;
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 25px;
+            padding: 30px;
             max-width: 350px;
+            width: 90%;
             text-align: center;
-            animation: fadeIn 0.3s;
+            animation: fadeIn 0.3s ease;
         }
         @keyframes fadeIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
         .modal-content h3 {
             color: #27ae60;
             margin-bottom: 15px;
+            font-size: 22px;
         }
         .modal-pix-chave {
-            background: #f0f0f0;
+            background: #f5f5f5;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-family: monospace;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin: 15px 0;
             word-break: break-all;
+            border: 2px solid #27ae60;
         }
         .modal-valor {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             color: #27ae60;
             margin: 10px 0;
@@ -310,19 +319,22 @@
             background: #27ae60;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
+            padding: 12px 25px;
+            border-radius: 40px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            width: 100%;
         }
         .btn-copiar {
             background: #667eea;
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 30px;
+            border-radius: 40px;
             cursor: pointer;
             margin: 5px;
+            font-weight: bold;
         }
         
         @media (max-width: 600px) {
@@ -339,16 +351,16 @@
             <button onclick="logout()" class="btn-sair" id="btnSair" style="display: none;">Sair</button>
         </h1>
         
-        <!-- MODAL PIX -->
+        <!-- MODAL PIX (SEMPRE PRESENTE) -->
         <div id="modalPix" class="modal">
             <div class="modal-content">
                 <h3>💳 PAGUE SEUS PALPITES!</h3>
-                <p>Seus palpites foram salvos! ✅</p>
+                <p>✅ Seus palpites foram salvos!</p>
                 <p>Para participar do bolão, faça o PIX:</p>
-                <div class="modal-valor">💰 R$ <span id="modal-valor-aposta">10,00</span></div>
+                <div class="modal-valor">💰 R$ 10,00</div>
                 <div class="modal-pix-chave" id="modal-chave-pix">Carregando...</div>
                 <button class="btn-copiar" onclick="copiarChavePixModal()">📋 Copiar Chave PIX</button>
-                <p style="font-size: 12px; margin-top: 10px;">Após o pagamento, seu status será atualizado pelo admin.</p>
+                <p style="font-size: 12px; margin-top: 15px;">Após o pagamento, aguarde a confirmação do administrador.</p>
                 <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
             </div>
         </div>
@@ -393,18 +405,18 @@
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
                       <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                       <table>
+                        <table>
                         <thead>
-                               <tr>
+                             <tr>
                                 <th>Pos</th>
                                 <th>Nome</th>
                                 <th>3pts</th>
                                 <th>1pt</th>
                                 <th>Total</th>
-                               </tr>
+                             </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                       </table>
+                     </table>
                 </div>
             </div>
             
@@ -489,12 +501,15 @@
         let todosParticipantes = [];
         let prazoFinal = null;
         let config = { valorAposta: 10, percentualPremio: 80 };
-        let chavePix = "";
+        let chavePix = "11999999999"; // Chave padrão
         
-        // Carregar chave PIX
+        // Carregar chave PIX do Firebase
         db.ref('config/chave_pix').on('value', (snap) => {
-            chavePix = snap.val() || 'Chave não cadastrada';
+            if (snap.val()) {
+                chavePix = snap.val();
+            }
             document.getElementById('chave-pix').textContent = chavePix;
+            document.getElementById('modal-chave-pix').textContent = chavePix;
         });
         
         // Carregar dados
@@ -535,13 +550,20 @@
                 config.percentualPremio = data.percentualPremio || 80;
             }
             document.getElementById('info-valor').innerHTML = `💰 Aposta: R$ ${config.valorAposta} | 1º lugar: ${config.percentualPremio}%`;
-            document.getElementById('modal-valor-aposta').textContent = config.valorAposta.toFixed(2);
+            const modalValor = document.querySelector('.modal-valor');
+            if (modalValor) modalValor.innerHTML = `💰 R$ ${config.valorAposta.toFixed(2)}`;
         });
         
-        // ========== FUNÇÕES ==========
+        // ========== FUNÇÕES MODAL ==========
         function mostrarModalPix() {
-            document.getElementById('modal-chave-pix').textContent = chavePix || 'Chave não cadastrada';
-            document.getElementById('modalPix').style.display = 'flex';
+            const modal = document.getElementById('modalPix');
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('Modal aberto');
+            } else {
+                console.log('Modal não encontrado');
+                alert('Por favor, faça o PIX para a chave: ' + chavePix);
+            }
         }
         
         function fecharModal() {
@@ -735,7 +757,7 @@
             });
         }
         
-        // ========== SALVAR PALPITES (COM MODAL PIX) ==========
+        // ========== SALVAR PALPITES (COM MODAL) ==========
         function salvarPalpites() {
             if (prazoExpirado()) {
                 alert('❌ Prazo encerrado! Não é mais possível salvar.');
@@ -778,7 +800,7 @@
                             db.ref('participantes/' + key).set(usuarioAtual)
                                 .then(() => {
                                     alert('✅ Palpites salvos!');
-                                    // 🔥 MOSTRAR MODAL COM PIX 🔥
+                                    // 🔥 ABRE O MODAL PIX 🔥
                                     mostrarModalPix();
                                 });
                             break;
@@ -836,12 +858,12 @@
             const tbody = document.getElementById('ranking-body');
             tbody.innerHTML = ranking.map((p, i) => `
                 <tr ${i === 0 ? 'class="primeiro"' : ''}>
-                     <td>${i+1}º</td>
-                     <td>${p.nome}</td>
-                     <td>${p.p3}</td>
-                     <td>${p.p1}</td>
-                     <td><strong>${p.total}</strong></td>
-                 </tr>
+                      <td>${i+1}º</td>
+                      <td>${p.nome}</td>
+                      <td>${p.p3}</td>
+                      <td>${p.p1}</td>
+                      <td><strong>${p.total}</strong></td>
+                  </tr>
             `).join('');
         }
         
@@ -867,23 +889,23 @@
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
-            html += '<thead> <tr> <th>Participante</th>';
+            html += '<thead> <tr><th>Participante</th>';
             jogosOrdenados.forEach(j => {
                 const badge1 = getTimeBadge(j.time1);
                 const badge2 = getTimeBadge(j.time2);
                 html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
             });
-            html += ' </tr> </thead> <tbody>';
+            html += ' </tr></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                html += ` <tr> <td><strong>${p.nome}</strong></td>`;
+                html += ` <tr><td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
                     html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
-                html += ' </tr>';
+                html += '</tr>';
             });
-            html += '</tbody> </table> </div>';
+            html += '</tbody></table></div>';
             
             container.innerHTML = html;
         }
