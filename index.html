@@ -261,7 +261,6 @@
             color: #155724;
         }
         
-        /* PRÊMIO ACUMULADO - TEXTO CORRIGIDO */
         .premio-acumulado {
             background: linear-gradient(135deg, #f39c12, #e67e22);
             border-radius: 15px;
@@ -397,7 +396,6 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
-                    <!-- PRÊMIO ACUMULADO - TEXTO CORRIGIDO -->
                     <div id="premio-acumulado" class="premio-acumulado" style="display: none;">
                         <h3>🏆 PRÊMIO EXTRA 🏆</h3>
                         <div class="premio-acumulado-valor" id="acumulado-valor">R$ 0,00</div>
@@ -422,18 +420,18 @@
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                      <td>
+                    <table>
                         <thead>
-                              <tr>
+                            <tr>
                                 <th>Pos</th>
                                 <th>Nome</th>
                                 <th>3pts</th>
                                 <th>1pt</th>
                                 <th>Total</th>
-                              </tr>
+                            </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                      </table>
+                    </table>
                 </div>
             </div>
             
@@ -867,10 +865,15 @@
             return { total, p3, p1 };
         }
         
-        // ========== RANKING ==========
+        // ========== RANKING CORRIGIDO (SÓ PAGANTES COM PALPITES) ==========
         function atualizarRanking() {
+            // 🔥 CORREÇÃO: SÓ PAGANTES!
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
-            const ranking = pagantes.map(p => ({
+            
+            // 🔥 CORREÇÃO: SÓ QUEM TEM PALPITES COMPLETOS
+            const participantesValidos = pagantes.filter(p => p.palpites && p.palpites.length === todosJogos.length);
+            
+            const ranking = participantesValidos.map(p => ({
                 nome: p.nome,
                 ...calcularPontos(p)
             })).sort((a, b) => b.total - a.total);
@@ -879,7 +882,7 @@
                 document.getElementById('lider-nome').textContent = '-';
                 document.getElementById('lider-pontos').textContent = '0';
                 document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ 0,00`;
-                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante</td></tr>';
+                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante com palpites completos</td>'    ;
                 return;
             }
             
@@ -891,7 +894,7 @@
             document.getElementById('lider-nome').textContent = textoLider;
             document.getElementById('lider-pontos').textContent = ranking[0].total;
             
-            const totalArrecadado = pagantes.length * config.valorAposta;
+            const totalArrecadado = participantesValidos.length * config.valorAposta;
             const premio = totalArrecadado * (config.percentualPremio / 100);
             
             const premioPorLider = lideres.length > 1 ? (premio / lideres.length).toFixed(2) : premio.toFixed(2);
@@ -944,7 +947,7 @@
                 const badge2 = getTimeBadge(j.time2);
                 html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
             });
-            html += ' </table></thead><tbody>';
+            html += ' <tr></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
