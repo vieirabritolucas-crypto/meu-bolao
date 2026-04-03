@@ -261,6 +261,7 @@
             color: #155724;
         }
         
+        /* PRÊMIO ACUMULADO - TEXTO CORRIGIDO */
         .premio-acumulado {
             background: linear-gradient(135deg, #f39c12, #e67e22);
             border-radius: 15px;
@@ -270,9 +271,17 @@
             color: white;
             animation: pulse 2s infinite;
         }
+        .premio-acumulado h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
         .premio-acumulado-valor {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
+        }
+        .premio-acumulado-desc {
+            font-size: 14px;
+            opacity: 0.9;
         }
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -388,10 +397,11 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
+                    <!-- PRÊMIO ACUMULADO - TEXTO CORRIGIDO -->
                     <div id="premio-acumulado" class="premio-acumulado" style="display: none;">
                         <h3>🏆 PRÊMIO EXTRA 🏆</h3>
                         <div class="premio-acumulado-valor" id="acumulado-valor">R$ 0,00</div>
-                        <div>para quem acertar TODOS os placares exatos da rodada!</div>
+                        <div class="premio-acumulado-desc">para quem fizer 24 PONTOS OU MAIS na rodada!</div>
                     </div>
                     
                     <div id="status-pagamento" class="status-pagamento">Carregando...</div>
@@ -412,9 +422,9 @@
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                      <table>
+                      <td>
                         <thead>
-                             <tr>
+                              <tr>
                                 <th>Pos</th>
                                 <th>Nome</th>
                                 <th>3pts</th>
@@ -423,7 +433,7 @@
                               </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                     </table>
+                      </table>
                 </div>
             </div>
             
@@ -857,7 +867,7 @@
             return { total, p3, p1 };
         }
         
-        // ========== RANKING CORRIGIDO (COM EMPATE) ==========
+        // ========== RANKING ==========
         function atualizarRanking() {
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
             const ranking = pagantes.map(p => ({
@@ -934,7 +944,7 @@
                 const badge2 = getTimeBadge(j.time2);
                 html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
             });
-            html += ' </tr></thead><tbody>';
+            html += ' </table></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
