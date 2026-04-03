@@ -261,7 +261,25 @@
             color: #155724;
         }
         
-        /* Modal PIX - CORRIGIDO */
+        .premio-acumulado {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        .premio-acumulado-valor {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -281,22 +299,6 @@
             max-width: 350px;
             width: 90%;
             text-align: center;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .modal-content h3 {
-            color: #27ae60;
-            margin-bottom: 15px;
-            font-size: 22px;
         }
         .modal-pix-chave {
             background: #f5f5f5;
@@ -323,7 +325,6 @@
             border-radius: 40px;
             cursor: pointer;
             margin-top: 15px;
-            font-weight: bold;
             width: 100%;
         }
         .btn-copiar {
@@ -334,7 +335,6 @@
             border-radius: 40px;
             cursor: pointer;
             margin: 5px;
-            font-weight: bold;
         }
         
         @media (max-width: 600px) {
@@ -351,13 +351,13 @@
             <button onclick="logout()" class="btn-sair" id="btnSair" style="display: none;">Sair</button>
         </h1>
         
-        <!-- MODAL PIX (SEMPRE PRESENTE) -->
+        <!-- MODAL PIX -->
         <div id="modalPix" class="modal">
             <div class="modal-content">
                 <h3>💳 PAGUE SEUS PALPITES!</h3>
                 <p>✅ Seus palpites foram salvos!</p>
                 <p>Para participar do bolão, faça o PIX:</p>
-                <div class="modal-valor">💰 R$ 10,00</div>
+                <div class="modal-valor">💰 R$ <span id="modal-valor-aposta">10,00</span></div>
                 <div class="modal-pix-chave" id="modal-chave-pix">Carregando...</div>
                 <button class="btn-copiar" onclick="copiarChavePixModal()">📋 Copiar Chave PIX</button>
                 <p style="font-size: 12px; margin-top: 15px;">Após o pagamento, aguarde a confirmação do administrador.</p>
@@ -387,6 +387,13 @@
             <div id="aba-palpites" class="conteudo ativo">
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
+                    
+                    <div id="premio-acumulado" class="premio-acumulado" style="display: none;">
+                        <h3>🏆 PRÊMIO EXTRA 🏆</h3>
+                        <div class="premio-acumulado-valor" id="acumulado-valor">R$ 0,00</div>
+                        <div>para quem acertar TODOS os placares exatos da rodada!</div>
+                    </div>
+                    
                     <div id="status-pagamento" class="status-pagamento">Carregando...</div>
                     <div id="prazo-info" class="aviso" style="background: #e8f4fd; color:#333;"></div>
                     <div id="jogos-container">Carregando jogos...</div>
@@ -404,8 +411,8 @@
                         <div class="vencedor-pontos" id="lider-pontos">0</div>
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
-                      <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                        <table>
+                    <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
+                      <table>
                         <thead>
                              <tr>
                                 <th>Pos</th>
@@ -413,7 +420,7 @@
                                 <th>3pts</th>
                                 <th>1pt</th>
                                 <th>Total</th>
-                             </tr>
+                              </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
                      </table>
@@ -501,15 +508,31 @@
         let todosParticipantes = [];
         let prazoFinal = null;
         let config = { valorAposta: 10, percentualPremio: 80 };
-        let chavePix = "11999999999"; // Chave padrão
+        let chavePix = "11999999999";
+        let acumulado = { valorAtual: 50 };
         
-        // Carregar chave PIX do Firebase
+        // Carregar chave PIX
         db.ref('config/chave_pix').on('value', (snap) => {
-            if (snap.val()) {
-                chavePix = snap.val();
-            }
+            if (snap.val()) chavePix = snap.val();
             document.getElementById('chave-pix').textContent = chavePix;
             document.getElementById('modal-chave-pix').textContent = chavePix;
+        });
+        
+        // Carregar acumulado
+        db.ref('config/acumulado').on('value', (snap) => {
+            if (snap.val()) {
+                acumulado = snap.val();
+                const acumuladoDiv = document.getElementById('premio-acumulado');
+                const acumuladoValor = document.getElementById('acumulado-valor');
+                if (acumuladoDiv && acumuladoValor) {
+                    if (acumulado.valorAtual > 0) {
+                        acumuladoDiv.style.display = 'block';
+                        acumuladoValor.innerHTML = `R$ ${acumulado.valorAtual.toFixed(2)}`;
+                    } else {
+                        acumuladoDiv.style.display = 'none';
+                    }
+                }
+            }
         });
         
         // Carregar dados
@@ -559,9 +582,7 @@
             const modal = document.getElementById('modalPix');
             if (modal) {
                 modal.style.display = 'flex';
-                console.log('Modal aberto');
             } else {
-                console.log('Modal não encontrado');
                 alert('Por favor, faça o PIX para a chave: ' + chavePix);
             }
         }
@@ -757,7 +778,7 @@
             });
         }
         
-        // ========== SALVAR PALPITES (COM MODAL) ==========
+        // ========== SALVAR PALPITES ==========
         function salvarPalpites() {
             if (prazoExpirado()) {
                 alert('❌ Prazo encerrado! Não é mais possível salvar.');
@@ -800,7 +821,6 @@
                             db.ref('participantes/' + key).set(usuarioAtual)
                                 .then(() => {
                                     alert('✅ Palpites salvos!');
-                                    // 🔥 ABRE O MODAL PIX 🔥
                                     mostrarModalPix();
                                 });
                             break;
@@ -837,7 +857,7 @@
             return { total, p3, p1 };
         }
         
-        // ========== RANKING ==========
+        // ========== RANKING CORRIGIDO (COM EMPATE) ==========
         function atualizarRanking() {
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
             const ranking = pagantes.map(p => ({
@@ -845,26 +865,45 @@
                 ...calcularPontos(p)
             })).sort((a, b) => b.total - a.total);
             
-            if (ranking.length > 0) {
-                const lider = ranking[0];
-                const totalArrecadado = pagantes.length * config.valorAposta;
-                const premio = totalArrecadado * (config.percentualPremio / 100);
-                
-                document.getElementById('lider-nome').textContent = lider.nome;
-                document.getElementById('lider-pontos').textContent = lider.total;
-                document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ ${premio.toFixed(2)}`;
+            if (ranking.length === 0) {
+                document.getElementById('lider-nome').textContent = '-';
+                document.getElementById('lider-pontos').textContent = '0';
+                document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ 0,00`;
+                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante</td></tr>';
+                return;
             }
             
+            const primeiraPontuacao = ranking[0].total;
+            const lideres = ranking.filter(p => p.total === primeiraPontuacao);
+            const nomesLideres = lideres.map(l => l.nome).join(' e ');
+            const textoLider = lideres.length === 1 ? lideres[0].nome : nomesLideres;
+            
+            document.getElementById('lider-nome').textContent = textoLider;
+            document.getElementById('lider-pontos').textContent = ranking[0].total;
+            
+            const totalArrecadado = pagantes.length * config.valorAposta;
+            const premio = totalArrecadado * (config.percentualPremio / 100);
+            
+            const premioPorLider = lideres.length > 1 ? (premio / lideres.length).toFixed(2) : premio.toFixed(2);
+            const textoPremio = lideres.length > 1 
+                ? `💰 Prêmio: R$ ${premioPorLider} para cada um dos ${lideres.length} líderes!`
+                : `💰 Prêmio: R$ ${premio.toFixed(2)}`;
+            
+            document.getElementById('lider-premio').innerHTML = textoPremio;
+            
             const tbody = document.getElementById('ranking-body');
-            tbody.innerHTML = ranking.map((p, i) => `
-                <tr ${i === 0 ? 'class="primeiro"' : ''}>
-                      <td>${i+1}º</td>
-                      <td>${p.nome}</td>
-                      <td>${p.p3}</td>
-                      <td>${p.p1}</td>
-                      <td><strong>${p.total}</strong></td>
-                  </tr>
-            `).join('');
+            tbody.innerHTML = ranking.map((p, i) => {
+                const isLider = p.total === primeiraPontuacao;
+                return `
+                    <tr ${isLider ? 'class="primeiro"' : ''}>
+                        <td>${i+1}º</td>
+                        <td>${p.nome}</td>
+                        <td>${p.p3}</td>
+                        <td>${p.p1}</td>
+                        <td><strong>${p.total}</strong></td>
+                    </tr>
+                `;
+            }).join('');
         }
         
         // ========== PALPITES DO GRUPO ==========
@@ -898,14 +937,14 @@
             html += ' </tr></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                html += ` <tr><td><strong>${p.nome}</strong></td>`;
+                html += ` <tr> <td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
+                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
-                html += '</tr>';
+                html += ' </tr>';
             });
-            html += '</tbody></table></div>';
+            html += '</tbody> </table> </div>';
             
             container.innerHTML = html;
         }
