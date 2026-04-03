@@ -9,7 +9,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 20px; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 20px; padding: 20px; }
         h1 { color: #333; text-align: center; margin-bottom: 20px; }
         
         .tabs { display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap; }
@@ -51,7 +51,6 @@
             border-left: 4px solid #27ae60;
         }
         .participante-item.pendente { border-left-color: #f39c12; background: #fff3cd; }
-        .participante-item .tem-palpite { background: #e8f4fd; border-left-color: #667eea; }
         
         .resultado-item {
             background: white;
@@ -92,7 +91,6 @@
         }
         .btn-danger { background: #e74c3c; }
         .btn-warning { background: #f39c12; }
-        .btn-excluir { background: #e74c3c; font-size: 10px; padding: 4px 8px; margin-left: 10px; }
         
         .tabela-palpites {
             width: 100%;
@@ -130,18 +128,6 @@
             margin: 15px 0;
             word-break: break-all;
         }
-        
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        .badge-pendente { background: #f39c12; color: white; }
-        .badge-pago { background: #27ae60; color: white; }
-        .badge-palpites { background: #667eea; color: white; }
         
         @media (max-width: 600px) {
             .container { padding: 12px; }
@@ -201,14 +187,13 @@
                 </div>
             </div>
             
-            <!-- ABA PAGAMENTOS (ATUALIZADA) -->
+            <!-- ABA PAGAMENTOS -->
             <div id="aba-pagamentos" class="conteudo">
                 <div class="card">
                     <div class="stats-grid">
                         <div class="stat-card"><div class="stat-valor" id="stat-total-participantes">0</div><div>Total</div></div>
                         <div class="stat-card"><div class="stat-valor" id="stat-total-pagantes">0</div><div>Pagantes</div></div>
                         <div class="stat-card"><div class="stat-valor" id="stat-total-pendentes">0</div><div>Pendentes</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-com-palpites">0</div><div>Com Palpites</div></div>
                     </div>
                     <div id="pagamentos-lista"></div>
                 </div>
@@ -224,6 +209,8 @@
                     </div>
                     <div style="text-align:right;">
                         <button onclick="exportarCSV()" class="btn-warning">📊 CSV</button>
+                        <button onclick="exportarPalpitesPorJogadorTabela()" class="btn-warning">📊 Palpites por Jogador</button>
+                        <button onclick="exportarPalpitesPDF()" class="btn-warning">📄 PDF</button>
                     </div>
                     <div id="tabela-palpites-container"></div>
                 </div>
@@ -239,7 +226,6 @@
                     <div class="pix-card" style="margin-top: 20px;">
                         <h4>📱 Visualização para o jogador:</h4>
                         <div class="pix-chave" id="preview-chave-pix">Chave não configurada</div>
-                        <p style="font-size: 12px;">Os jogadores verão esta chave na aba "Pagamento"</p>
                     </div>
                 </div>
             </div>
@@ -247,15 +233,28 @@
             <!-- ABA CONFIG -->
             <div id="aba-config" class="conteudo">
                 <div class="card">
-                    <label>🎯 Pontos placar exato:</label>
+                    <h3>🎯 Pontuação</h3>
+                    <label>🎯 Pontos por placar exato:</label>
                     <input type="number" id="pontos-placar" value="3" min="1">
-                    <label>✅ Pontos resultado certo:</label>
+                    <label>✅ Pontos por resultado certo:</label>
                     <input type="number" id="pontos-resultado" value="1" min="1">
-                    <label>💰 Valor da aposta (R$):</label>
-                    <input type="number" id="valor-aposta" value="10" min="1">
-                    <label>🔐 Nova senha do admin:</label>
+                    
+                    <h3>💰 Prêmio da Rodada</h3>
+                    <label>Percentual para 1º lugar:</label>
+                    <input type="number" id="percentual-premio" value="80" min="50" max="100">
+                    
+                    <h3>🏆 PRÊMIO ACUMULADO</h3>
+                    <p style="color: #666; font-size: 12px;">Prêmio extra para quem fizer <strong>24 PONTOS OU MAIS</strong> na rodada.</p>
+                    <label>Valor inicial do acumulado (R$):</label>
+                    <input type="number" id="acumulado-inicial" value="50" min="0" step="10">
+                    <label>Valor atual do acumulado (R$):</label>
+                    <input type="number" id="acumulado-atual" value="50" min="0" step="10">
+                    
+                    <h3>🔐 Segurança</h3>
+                    <label>Nova senha do admin:</label>
                     <input type="password" id="nova-senha" placeholder="Deixe em branco para não alterar">
-                    <button onclick="salvarConfig()">💾 Salvar</button>
+                    
+                    <button onclick="salvarConfig()" style="margin-top: 15px;">💾 Salvar Configurações</button>
                 </div>
             </div>
             
@@ -283,16 +282,18 @@
         
         db.ref('config/senha').on('value', (snap) => { if (snap.val()) senhaAdmin = snap.val(); });
         db.ref('jogos').on('value', (snap) => { jogos = snap.val() ? Object.values(snap.val()) : []; mostrarJogos(); mostrarResultados(); mostrarTabelaPalpites(); });
-        db.ref('participantes').on('value', (snap) => { 
-            participantes = snap.val() ? Object.values(snap.val()) : []; 
-            mostrarPagamentos(); 
-            mostrarTabelaPalpites(); 
-        });
+        db.ref('participantes').on('value', (snap) => { participantes = snap.val() ? Object.values(snap.val()) : []; mostrarPagamentos(); mostrarTabelaPalpites(); });
         db.ref('prazo').on('value', (snap) => { document.getElementById('prazo').value = snap.val() || '2026-03-21T19:00'; });
         db.ref('config/chave_pix').on('value', (snap) => {
             const chave = snap.val() || '';
             document.getElementById('chave-pix').value = chave;
             document.getElementById('preview-chave-pix').textContent = chave || 'Chave não configurada';
+        });
+        
+        db.ref('config/acumulado').on('value', (snap) => {
+            const acumulado = snap.val() || { valorInicial: 50, valorAtual: 50 };
+            document.getElementById('acumulado-inicial').value = acumulado.valorInicial;
+            document.getElementById('acumulado-atual').value = acumulado.valorAtual;
         });
         
         // ========== LOGIN ADMIN ==========
@@ -392,47 +393,91 @@
                 }
             });
             db.ref('jogos').set(jogos);
-            alert('✅ Resultados salvos! Pontuação será atualizada.');
+            alert('✅ Resultados salvos!');
         }
         
-        // ========== FINALIZAR RODADA ==========
+        // ========== FINALIZAR RODADA (NOVA REGRA: 24 PONTOS OU MAIS) ==========
         function finalizarRodada() {
-            if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e LIMPAR apenas os palpites. Os jogadores serão mantidos. Continuar?')) return;
-            
-            const historico = {
-                data: new Date().toISOString(),
-                jogos: jogos,
-                participantes: participantes.filter(p => p.pago),
-                ranking: []
-            };
-            
-            const ranking = participantes.filter(p => p.pago).map(p => {
-                let total = 0;
+            if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e verificar quem fez 24 pontos ou mais. Continuar?')) return;
+
+            const acumuladoAtual = parseFloat(document.getElementById('acumulado-atual').value) || 0;
+            const pontuacaoMinima = 24;
+
+            const pagantes = participantes.filter(p => p.pago);
+            const desempenho = pagantes.map(p => {
+                let totalPontos = 0;
+                let placaresExatos = 0;
+                let resultadosCertos = 0;
+
                 p.palpites?.forEach(palpite => {
                     const jogo = jogos.find(j => j.id === palpite.jogoId);
-                    if (jogo && jogo.gols1 != null) {
-                        if (palpite.gols1 === jogo.gols1 && palpite.gols2 === jogo.gols2) total += 3;
-                        else {
-                            const resJogo = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
+                    if (jogo && jogo.gols1 !== null && jogo.gols2 !== null) {
+                        if (palpite.gols1 === jogo.gols1 && palpite.gols2 === jogo.gols2) {
+                            totalPontos += 3;
+                            placaresExatos++;
+                        } else {
+                            const resReal = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
                             const resPalpite = palpite.gols1 > palpite.gols2 ? 1 : palpite.gols2 > palpite.gols1 ? 2 : 0;
-                            if (resJogo === resPalpite) total += 1;
+                            if (resReal === resPalpite) {
+                                totalPontos += 1;
+                                resultadosCertos++;
+                            }
                         }
                     }
                 });
-                return { nome: p.nome, total };
-            }).sort((a, b) => b.total - a.total);
-            
-            historico.ranking = ranking;
+
+                return { ...p, totalPontos, placaresExatos, resultadosCertos };
+            });
+
+            const vencedores = desempenho.filter(d => d.totalPontos >= pontuacaoMinima);
+
+            let novoAcumulado = acumuladoAtual;
+            let mensagem = '';
+
+            if (vencedores.length > 0) {
+                const premioIndividual = acumuladoAtual / vencedores.length;
+                const nomesVencedores = vencedores.map(v => v.nome).join(' e ');
+                
+                mensagem = `🏆 PRÊMIO ACUMULADO ATINGIDO! 🏆\n\n`;
+                mensagem += `${vencedores.length} participante(s) fez(eram) ${pontuacaoMinima} pontos ou mais:\n`;
+                mensagem += `${nomesVencedores}\n\n`;
+                mensagem += `💰 Cada um receberá R$ ${premioIndividual.toFixed(2)} do acumulado!`;
+
+                alert(mensagem);
+                
+                novoAcumulado = parseFloat(document.getElementById('acumulado-inicial').value) || 50;
+            } else {
+                mensagem = `⚠️ Ninguém atingiu ${pontuacaoMinima} pontos nesta rodada.\n`;
+                mensagem += `💰 Prêmio acumulado de R$ ${acumuladoAtual.toFixed(2)} vai para a próxima rodada!`;
+                alert(mensagem);
+            }
+
+            const historico = {
+                data: new Date().toISOString(),
+                jogos: jogos,
+                participantes: desempenho,
+                vencedores: vencedores.map(v => ({ nome: v.nome, pontos: v.totalPontos })),
+                premioAcumulado: acumuladoAtual,
+                premiado: vencedores.length > 0
+            };
             db.ref('historico').push(historico);
-            
+
+            db.ref('config/acumulado').set({
+                valorInicial: parseFloat(document.getElementById('acumulado-inicial').value),
+                valorAtual: novoAcumulado
+            });
+
             participantes.forEach(p => { p.palpites = []; });
             jogos.forEach(j => { j.gols1 = null; j.gols2 = null; });
-            
+
             db.ref('participantes').set(participantes);
             db.ref('jogos').set(jogos);
-            
-            alert('✅ Rodada finalizada! Jogadores mantidos, palpites resetados.');
-            mostrarJogos(); mostrarResultados(); mostrarPagamentos(); mostrarTabelaPalpites();
+
+            alert('✅ Rodada finalizada! Próxima rodada pronta.');
+            mostrarJogos();
+            mostrarResultados();
+            mostrarPagamentos();
+            mostrarTabelaPalpites();
         }
         
         function limparApenasPalpites() {
@@ -443,31 +488,17 @@
             mostrarPagamentos(); mostrarTabelaPalpites();
         }
         
-        // ========== EXCLUIR JOGADOR ==========
-        function excluirJogador(celular) {
-            if (!confirm(`⚠️ Tem certeza que deseja EXCLUIR este jogador?`)) return;
-            const index = participantes.findIndex(p => p.celular === celular);
-            if (index !== -1) {
-                participantes.splice(index, 1);
-                db.ref('participantes').set(participantes);
-                alert('✅ Jogador excluído!');
-                mostrarPagamentos(); mostrarTabelaPalpites();
-            }
-        }
-        
-        // ========== PAGAMENTOS (ATUALIZADA) ==========
+        // ========== PAGAMENTOS ==========
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             div.innerHTML = '';
             
             const pagantes = participantes.filter(p => p.pago).length;
             const pendentes = participantes.length - pagantes;
-            const comPalpites = participantes.filter(p => p.palpites && p.palpites.length > 0).length;
             
             document.getElementById('stat-total-participantes').textContent = participantes.length;
             document.getElementById('stat-total-pagantes').textContent = pagantes;
             document.getElementById('stat-total-pendentes').textContent = pendentes;
-            document.getElementById('stat-total-com-palpites').textContent = comPalpites;
             
             if (participantes.length === 0) {
                 div.innerHTML = '<p>Nenhum participante cadastrado.</p>';
@@ -475,22 +506,16 @@
             }
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                const temPalpite = p.palpites && p.palpites.length > 0;
-                const statusClass = p.pago ? '' : 'pendente';
-                const palpiteBadge = temPalpite ? '<span class="badge badge-palpites">📊 Tem palpites</span>' : '';
-                
                 div.innerHTML += `
-                    <div class="participante-item ${statusClass}">
+                    <div class="participante-item ${p.pago ? '' : 'pendente'}">
                         <div>
                             <strong>${p.nome}</strong> - ${p.celular}
-                            ${palpiteBadge}
-                            <br><small style="color: #666;">Palpites: ${p.palpites?.length || 0}/${jogos.length}</small>
+                            <br><small>Palpites: ${p.palpites?.length || 0}/${jogos.length}</small>
                         </div>
                         <div>
                             <button onclick="togglePago('${p.celular}')" style="background: ${p.pago ? '#e74c3c' : '#27ae60'}">
                                 ${p.pago ? '❌ Cancelar Pagamento' : '✅ Confirmar Pagamento'}
                             </button>
-                            <button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️ Excluir</button>
                         </div>
                     </div>
                 `;
@@ -516,41 +541,104 @@
             
             const jogosOrdenados = [...jogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
-            let html = '<table class="tabela-palpites"><thead> <tr> <th>Participante</th> <th>Pago</th>';
+            let html = '<table class="tabela-palpites"><thead><tr><th>Participante</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
-            html += '<th>Ações</th> </tr> </thead> <tbody>';
+            html += '</td></thead><tbody>';
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                html += ` <tr> <td><strong>${p.nome}</strong> <br><small>${p.celular}</small></td>`;
-                html += ` <td>${p.pago ? '✅ Pago' : '⏳ Pendente'}</td>`;
+                html += `<tr><td><strong>${p.nome}</strong><br><small>${p.celular}</small></td>`;
+                html += `<td>${p.pago ? '✅' : '❌'}</td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp.jogoId === j.id);
-                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
+                    html += `<td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
-                html += ` <td><button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️</button></td>`;
-                html += ' </tr>';
+                html += '</tr>';
             });
-            html += '</tbody> </table>';
+            html += '</tbody></table>';
             
             container.innerHTML = html;
         }
         
-        // ========== PIX ==========
-        function salvarChavePix() {
-            const chave = document.getElementById('chave-pix').value;
-            db.ref('config/chave_pix').set(chave);
-            alert('✅ Chave PIX salva!');
+        // ========== EXPORTAR PALPITES POR JOGADOR ==========
+        function exportarPalpitesPorJogadorTabela() {
+            const jogosOrdenados = [...jogos].sort((a, b) => (a.id || 0) - (b.id || 0));
+            const pagantes = participantes.filter(p => p.pago);
+            
+            if (pagantes.length === 0) {
+                alert('Nenhum participante pagante!');
+                return;
+            }
+            
+            let csv = '';
+            
+            pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
+                csv += `"${p.nome}"\n`;
+                jogosOrdenados.forEach(jogo => {
+                    const palpite = p.palpites?.find(pp => pp.jogoId === jogo.id);
+                    const golsCasa = palpite ? palpite.gols1 : '---';
+                    const golsVisitante = palpite ? palpite.gols2 : '---';
+                    csv += `"${jogo.time1}";"${golsCasa}";"x";"${golsVisitante}";"${jogo.time2}"\n`;
+                });
+                csv += '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `palpites_por_jogador_${new Date().toLocaleDateString()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // ========== EXPORTAR PDF ==========
+        function exportarPalpitesPDF() {
+            const jogosOrdenados = [...jogos].sort((a, b) => (a.id || 0) - (b.id || 0));
+            const pagantes = participantes.filter(p => p.pago);
+            
+            if (pagantes.length === 0) {
+                alert('Nenhum participante pagante!');
+                return;
+            }
+            
+            let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Palpites do Bolão</title><style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .jogador { margin-bottom: 40px; page-break-after: avoid; }
+                .jogador-nome { font-size: 18px; font-weight: bold; background-color: #667eea; color: white; padding: 10px; margin-bottom: 10px; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                @media print { .separador { page-break-after: always; } }
+            </style></head><body>`;
+            
+            pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((p, index) => {
+                html += `<div class="jogador"><div class="jogador-nome">${p.nome}</div><table><thead><tr><th>Time Casa</th><th>Gols Casa</th><th></th><th>Gols Visitante</th><th>Time Visitante</th></tr></thead><tbody>`;
+                jogosOrdenados.forEach(jogo => {
+                    const palpite = p.palpites?.find(pp => pp.jogoId === jogo.id);
+                    const golsCasa = palpite ? palpite.gols1 : '---';
+                    const golsVisitante = palpite ? palpite.gols2 : '---';
+                    html += `<tr><td>${jogo.time1}</td><td style="text-align:center">${golsCasa}</td><td style="text-align:center">x</td><td style="text-align:center">${golsVisitante}</td><td>${jogo.time2}</td></tr>`;
+                });
+                html += `</tbody></table></div>`;
+                if (index < pagantes.length - 1) html += `<div class="separador"></div>`;
+            });
+            
+            html += `</body></html>`;
+            const janela = window.open('', '_blank');
+            janela.document.write(html);
+            janela.document.close();
+            janela.print();
         }
         
         // ========== EXPORTAR CSV ==========
         function exportarCSV() {
             const jogosOrdenados = [...jogos].sort((a, b) => (a.id || 0) - (b.id || 0));
-            let csv = 'Participante,Pago,Status Pagamento,Palpites';
+            let csv = 'Participante,Pago';
             jogosOrdenados.forEach(j => csv += `,${j.time1} x ${j.time2}`);
             csv += '\n';
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                csv += `${p.nome},${p.pago ? 'Sim' : 'Não'},${p.pago ? 'Confirmado' : 'Pendente'},${p.palpites?.length || 0}`;
+                csv += `${p.nome},${p.pago ? 'Sim' : 'Não'}`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp.jogoId === j.id);
                     csv += `,${palpite ? `${palpite.gols1}-${palpite.gols2}` : '---'}`;
@@ -566,14 +654,27 @@
             a.click();
         }
         
+        // ========== PIX ==========
+        function salvarChavePix() {
+            const chave = document.getElementById('chave-pix').value;
+            db.ref('config/chave_pix').set(chave);
+            alert('✅ Chave PIX salva!');
+        }
+        
         // ========== CONFIGURAÇÕES ==========
         function salvarConfig() {
             const config = {
                 placarExato: parseInt(document.getElementById('pontos-placar').value),
                 resultadoCerto: parseInt(document.getElementById('pontos-resultado').value),
-                valorAposta: parseFloat(document.getElementById('valor-aposta').value)
+                percentualPremio: parseInt(document.getElementById('percentual-premio').value)
             };
             db.ref('config').update(config);
+            
+            const acumulado = {
+                valorInicial: parseFloat(document.getElementById('acumulado-inicial').value),
+                valorAtual: parseFloat(document.getElementById('acumulado-atual').value)
+            };
+            db.ref('config/acumulado').set(acumulado);
             
             const novaSenha = document.getElementById('nova-senha').value;
             if (novaSenha) {
