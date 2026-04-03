@@ -40,6 +40,7 @@
             font-size: 14px;
         }
         
+        /* CORES CORRIGIDAS */
         .participante-item {
             background: white;
             padding: 12px;
@@ -48,9 +49,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 4px solid #27ae60;
         }
-        .participante-item.pendente { border-left-color: #f39c12; background: #fff3cd; }
+        .participante-item.pago { 
+            border-left: 5px solid #27ae60; /* VERDE - quem já pagou */
+            background: #f0fff0;
+        }
+        .participante-item.pendente { 
+            border-left: 5px solid #e74c3c; /* VERMELHO - quem falta pagar */
+            background: #fff0f0;
+        }
         
         .resultado-item {
             background: white;
@@ -81,16 +88,17 @@
         
         button {
             padding: 8px 16px;
-            background: #27ae60;
-            color: white;
             border: none;
             border-radius: 30px;
             cursor: pointer;
             font-size: 12px;
             margin: 3px;
+            font-weight: 600;
         }
-        .btn-danger { background: #e74c3c; }
-        .btn-warning { background: #f39c12; }
+        .btn-pago { background: #27ae60; color: white; } /* VERDE - confirmar pagamento */
+        .btn-pendente { background: #e74c3c; color: white; } /* VERMELHO - cancelar pagamento */
+        .btn-excluir { background: #7f8c8d; color: white; margin-left: 8px; }
+        .btn-warning { background: #f39c12; color: white; }
         
         .tabela-palpites {
             width: 100%;
@@ -152,7 +160,7 @@
         <div id="conteudo-admin" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h1>⚽ Admin</h1>
-                <button onclick="logoutAdmin()" class="btn-danger">Sair</button>
+                <button onclick="logoutAdmin()" class="btn-pendente">Sair</button>
             </div>
             
             <div class="tabs">
@@ -167,8 +175,8 @@
             <!-- ABA JOGOS -->
             <div id="aba-jogos" class="conteudo ativo">
                 <div class="card">
-                    <button onclick="adicionarJogo()">+ Adicionar Jogo</button>
-                    <button onclick="salvarJogos()">💾 Salvar</button>
+                    <button onclick="adicionarJogo()" class="btn-pago">+ Adicionar Jogo</button>
+                    <button onclick="salvarJogos()" class="btn-pago">💾 Salvar</button>
                     <div id="jogos-lista"></div>
                     <label>⏰ Prazo:</label>
                     <input type="datetime-local" id="prazo" style="margin:8px 0;">
@@ -181,8 +189,8 @@
                     <div id="resultados-lista"></div>
                     <div class="acoes-rodada">
                         <button onclick="salvarResultados()" class="btn-warning">💾 Salvar Resultados</button>
-                        <button onclick="finalizarRodada()" style="background: #e67e22;">🏁 FINALIZAR RODADA</button>
-                        <button onclick="limparApenasPalpites()" style="background: #f39c12;">🧹 Limpar Apenas Palpites</button>
+                        <button onclick="finalizarRodada()" style="background: #e67e22; color: white;">🏁 FINALIZAR RODADA</button>
+                        <button onclick="limparApenasPalpites()" style="background: #f39c12; color: white;">🧹 Limpar Apenas Palpites</button>
                     </div>
                 </div>
             </div>
@@ -192,8 +200,8 @@
                 <div class="card">
                     <div class="stats-grid">
                         <div class="stat-card"><div class="stat-valor" id="stat-total-participantes">0</div><div>Total</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-pagantes">0</div><div>Pagantes</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-pendentes">0</div><div>Pendentes</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-total-pagantes">0</div><div>Pagantes ✅</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-total-pendentes">0</div><div>Pendentes ❌</div></div>
                     </div>
                     <div id="pagamentos-lista"></div>
                 </div>
@@ -222,7 +230,7 @@
                     <h3>💳 Configurar Chave PIX</h3>
                     <p>Digite a chave PIX que os jogadores devem usar para pagamento:</p>
                     <input type="text" id="chave-pix" placeholder="Ex: 11999999999 ou email@email.com" style="width:100%; padding:10px; margin:10px 0;">
-                    <button onclick="salvarChavePix()">💾 Salvar Chave PIX</button>
+                    <button onclick="salvarChavePix()" class="btn-pago">💾 Salvar Chave PIX</button>
                     <div class="pix-card" style="margin-top: 20px;">
                         <h4>📱 Visualização para o jogador:</h4>
                         <div class="pix-chave" id="preview-chave-pix">Chave não configurada</div>
@@ -254,7 +262,7 @@
                     <label>Nova senha do admin:</label>
                     <input type="password" id="nova-senha" placeholder="Deixe em branco para não alterar">
                     
-                    <button onclick="salvarConfig()" style="margin-top: 15px;">💾 Salvar Configurações</button>
+                    <button onclick="salvarConfig()" class="btn-pago" style="margin-top: 15px;">💾 Salvar Configurações</button>
                 </div>
             </div>
             
@@ -339,7 +347,7 @@
                         <span>VS</span>
                         <input type="text" id="t2_${j.id}" value="${j.time2}" placeholder="Time 2">
                         <input type="text" id="d_${j.id}" value="${j.data}" placeholder="Data" style="width:80px">
-                        <button class="btn-danger" onclick="removerJogo(${j.id})">Remover</button>
+                        <button class="btn-excluir" onclick="removerJogo(${j.id})">Remover</button>
                     </div>
                 `;
             });
@@ -396,7 +404,7 @@
             alert('✅ Resultados salvos!');
         }
         
-        // ========== FINALIZAR RODADA (NOVA REGRA: 24 PONTOS OU MAIS) ==========
+        // ========== FINALIZAR RODADA ==========
         function finalizarRodada() {
             if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e verificar quem fez 24 pontos ou mais. Continuar?')) return;
 
@@ -488,7 +496,7 @@
             mostrarPagamentos(); mostrarTabelaPalpites();
         }
         
-        // ========== PAGAMENTOS ==========
+        // ========== PAGAMENTOS (COM CORES CORRIGIDAS) ==========
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             div.innerHTML = '';
@@ -506,20 +514,40 @@
             }
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
+                const statusClass = p.pago ? 'pago' : 'pendente';
+                const statusTexto = p.pago ? '✅ Pago' : '❌ Pendente';
+                const botaoTexto = p.pago ? '❌ Cancelar Pagamento' : '✅ Confirmar Pagamento';
+                const botaoClass = p.pago ? 'btn-pendente' : 'btn-pago';
+                
                 div.innerHTML += `
-                    <div class="participante-item ${p.pago ? '' : 'pendente'}">
+                    <div class="participante-item ${statusClass}">
                         <div>
                             <strong>${p.nome}</strong> - ${p.celular}
                             <br><small>Palpites: ${p.palpites?.length || 0}/${jogos.length}</small>
+                            <br><small style="color: ${p.pago ? '#27ae60' : '#e74c3c'}">${statusTexto}</small>
                         </div>
                         <div>
-                            <button onclick="togglePago('${p.celular}')" style="background: ${p.pago ? '#e74c3c' : '#27ae60'}">
-                                ${p.pago ? '❌ Cancelar Pagamento' : '✅ Confirmar Pagamento'}
+                            <button onclick="togglePago('${p.celular}')" class="${botaoClass}">
+                                ${botaoTexto}
                             </button>
+                            <button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️ Excluir</button>
                         </div>
                     </div>
                 `;
             });
+        }
+        
+        function excluirJogador(celular) {
+            if (!confirm(`⚠️ Tem certeza que deseja EXCLUIR este jogador? Essa ação não pode ser desfeita.`)) return;
+            
+            const index = participantes.findIndex(p => p.celular === celular);
+            if (index !== -1) {
+                participantes.splice(index, 1);
+                db.ref('participantes').set(participantes);
+                alert('✅ Jogador excluído!');
+                mostrarPagamentos();
+                mostrarTabelaPalpites();
+            }
         }
         
         function togglePago(celular) {
@@ -543,7 +571,7 @@
             
             let html = '<table class="tabela-palpites"><thead><tr><th>Participante</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
-            html += '</td></thead><tbody>';
+            html += '</tr></thead><tbody>';
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += `<tr><td><strong>${p.nome}</strong><br><small>${p.celular}</small></td>`;
