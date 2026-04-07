@@ -40,7 +40,6 @@
             font-size: 14px;
         }
         
-        /* CORES CORRIGIDAS */
         .participante-item {
             background: white;
             padding: 12px;
@@ -51,11 +50,11 @@
             align-items: center;
         }
         .participante-item.pago { 
-            border-left: 5px solid #27ae60; /* VERDE - quem já pagou */
+            border-left: 5px solid #27ae60; 
             background: #f0fff0;
         }
         .participante-item.pendente { 
-            border-left: 5px solid #e74c3c; /* VERMELHO - quem falta pagar */
+            border-left: 5px solid #e74c3c; 
             background: #fff0f0;
         }
         
@@ -95,8 +94,8 @@
             margin: 3px;
             font-weight: 600;
         }
-        .btn-pago { background: #27ae60; color: white; } /* VERDE - confirmar pagamento */
-        .btn-pendente { background: #e74c3c; color: white; } /* VERMELHO - cancelar pagamento */
+        .btn-pago { background: #27ae60; color: white; }
+        .btn-pendente { background: #e74c3c; color: white; }
         .btn-excluir { background: #7f8c8d; color: white; margin-left: 8px; }
         .btn-warning { background: #f39c12; color: white; }
         
@@ -298,6 +297,7 @@
             document.getElementById('preview-chave-pix').textContent = chave || 'Chave não configurada';
         });
         
+        // Carregar acumulado
         db.ref('config/acumulado').on('value', (snap) => {
             const acumulado = snap.val() || { valorInicial: 50, valorAtual: 50 };
             document.getElementById('acumulado-inicial').value = acumulado.valorInicial;
@@ -496,7 +496,7 @@
             mostrarPagamentos(); mostrarTabelaPalpites();
         }
         
-        // ========== PAGAMENTOS (COM CORES CORRIGIDAS) ==========
+        // ========== PAGAMENTOS ==========
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             div.innerHTML = '';
@@ -689,7 +689,7 @@
             alert('✅ Chave PIX salva!');
         }
         
-        // ========== CONFIGURAÇÕES ==========
+        // ========== CONFIGURAÇÕES (COM ACUMULADO) ==========
         function salvarConfig() {
             const config = {
                 placarExato: parseInt(document.getElementById('pontos-placar').value),
@@ -698,6 +698,7 @@
             };
             db.ref('config').update(config);
             
+            // 🔥 SALVAR ACUMULADO CORRETAMENTE
             const acumulado = {
                 valorInicial: parseFloat(document.getElementById('acumulado-inicial').value),
                 valorAtual: parseFloat(document.getElementById('acumulado-atual').value)
