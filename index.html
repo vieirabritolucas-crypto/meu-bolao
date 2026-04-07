@@ -396,6 +396,7 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
+                    <!-- PRÊMIO ACUMULADO -->
                     <div id="premio-acumulado" class="premio-acumulado" style="display: none;">
                         <h3>🏆 PRÊMIO EXTRA 🏆</h3>
                         <div class="premio-acumulado-valor" id="acumulado-valor">R$ 0,00</div>
@@ -420,7 +421,7 @@
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                    <table>
+                    </table>
                         <thead>
                             <tr>
                                 <th>Pos</th>
@@ -526,7 +527,7 @@
             document.getElementById('modal-chave-pix').textContent = chavePix;
         });
         
-        // Carregar acumulado
+        // 🔥 CARREGAR ACUMULADO DO FIREBASE
         db.ref('config/acumulado').on('value', (snap) => {
             if (snap.val()) {
                 acumulado = snap.val();
@@ -865,14 +866,10 @@
             return { total, p3, p1 };
         }
         
-        // ========== RANKING CORRIGIDO (SÓ PAGANTES COM PALPITES) ==========
+        // ========== RANKING ==========
         function atualizarRanking() {
-            // 🔥 CORREÇÃO: SÓ PAGANTES!
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
-            
-            // 🔥 CORREÇÃO: SÓ QUEM TEM PALPITES COMPLETOS
             const participantesValidos = pagantes.filter(p => p.palpites && p.palpites.length === todosJogos.length);
-            
             const ranking = participantesValidos.map(p => ({
                 nome: p.nome,
                 ...calcularPontos(p)
@@ -882,7 +879,7 @@
                 document.getElementById('lider-nome').textContent = '-';
                 document.getElementById('lider-pontos').textContent = '0';
                 document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ 0,00`;
-                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante com palpites completos</td>'    ;
+                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante com palpites completos</td>'    ';
                 return;
             }
             
@@ -947,13 +944,13 @@
                 const badge2 = getTimeBadge(j.time2);
                 html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
             });
-            html += ' <tr></thead><tbody>';
+            html += ' </tr></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
+                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}<td>`;
                 });
                 html += ' </tr>';
             });
