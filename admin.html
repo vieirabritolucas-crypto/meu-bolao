@@ -270,13 +270,13 @@
     </div>
 
     <script>
-        // ========== CONFIGURAÇÃO FIREBASE (CORRIGIDA) ==========
+        // ========== CONFIGURAÇÃO FIREBASE (CORRIGIDA - COM F) ==========
         const firebaseConfig = {
             apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
-            authDomain: "meu-bolao-79771.firebaseapp.com",
-            databaseURL: "https://meu-bolao-79771-default-rtdb.firebaseio.com",
-            projectId: "meu-bolao-79771",
-            storageBucket: "meu-bolao-79771.firebasestorage.app",
+            authDomain: "meu-bolao-7977f.firebaseapp.com",
+            databaseURL: "https://meu-bolao-7977f-default-rtdb.firebaseio.com",
+            projectId: "meu-bolao-7977f",
+            storageBucket: "meu-bolao-7977f.firebasestorage.app",
             messagingSenderId: "766522730401",
             appId: "1:766522730401:web:c056a8dedc130e6a5b0de0"
         };
@@ -640,7 +640,7 @@
             </style></head><body>`;
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach((p, index) => {
-                html += `<div class="jogador"><div class="jogador-nome">${p.nome}</div><tr><thead><tr><th>Time Casa</th><th>Gols Casa</th><th></th><th>Gols Visitante</th><th>Time Visitante</th></tr></thead><tbody>`;
+                html += `<div class="jogador"><div class="jogador-nome">${p.nome}</div><table><thead><tr><th>Time Casa</th><th>Gols Casa</th><th></th><th>Gols Visitante</th><th>Time Visitante</th></tr></thead><tbody>`;
                 jogosOrdenados.forEach(jogo => {
                     const palpite = p.palpites?.find(pp => pp.jogoId === jogo.id);
                     const golsCasa = palpite ? palpite.gols1 : '---';
