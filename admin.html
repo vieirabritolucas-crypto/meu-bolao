@@ -270,12 +270,13 @@
     </div>
 
     <script>
+        // ========== CONFIGURAÇÃO FIREBASE (CORRIGIDA) ==========
         const firebaseConfig = {
             apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
-            authDomain: "meu-bolao-7977f.firebaseapp.com",
-            databaseURL: "https://meu-bolao-7977f-default-rtdb.firebaseio.com",
-            projectId: "meu-bolao-7977f",
-            storageBucket: "meu-bolao-7977f.firebasestorage.app",
+            authDomain: "meu-bolao-79771.firebaseapp.com",
+            databaseURL: "https://meu-bolao-79771-default-rtdb.firebaseio.com",
+            projectId: "meu-bolao-79771",
+            storageBucket: "meu-bolao-79771.firebasestorage.app",
             messagingSenderId: "766522730401",
             appId: "1:766522730401:web:c056a8dedc130e6a5b0de0"
         };
@@ -297,7 +298,6 @@
             document.getElementById('preview-chave-pix').textContent = chave || 'Chave não configurada';
         });
         
-        // Carregar acumulado
         db.ref('config/acumulado').on('value', (snap) => {
             const acumulado = snap.val() || { valorInicial: 50, valorAtual: 50 };
             document.getElementById('acumulado-inicial').value = acumulado.valorInicial;
@@ -571,7 +571,7 @@
             
             let html = '<table class="tabela-palpites"><thead><tr><th>Participante</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
-            html += '</tr></thead><tbody>';
+            html += '<tr></thead><tbody>';
             
             participantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += `<tr><td><strong>${p.nome}</strong><br><small>${p.celular}</small></td>`;
@@ -689,7 +689,7 @@
             alert('✅ Chave PIX salva!');
         }
         
-        // ========== CONFIGURAÇÕES (COM ACUMULADO) ==========
+        // ========== CONFIGURAÇÕES ==========
         function salvarConfig() {
             const config = {
                 placarExato: parseInt(document.getElementById('pontos-placar').value),
@@ -698,7 +698,6 @@
             };
             db.ref('config').update(config);
             
-            // 🔥 SALVAR ACUMULADO CORRETAMENTE
             const acumulado = {
                 valorInicial: parseFloat(document.getElementById('acumulado-inicial').value),
                 valorAtual: parseFloat(document.getElementById('acumulado-atual').value)
