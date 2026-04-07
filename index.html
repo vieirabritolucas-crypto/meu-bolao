@@ -878,7 +878,7 @@
                 document.getElementById('lider-nome').textContent = '-';
                 document.getElementById('lider-pontos').textContent = '0';
                 document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ 0,00`;
-                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante com palpites completos</td></tr>';
+                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante com palpites completos</td></td>';
                 return;
             }
             
@@ -943,7 +943,7 @@
                 const badge2 = getTimeBadge(j.time2);
                 html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
             });
-            html += ' <table></thead><tbody>';
+            html += ' <tr></thead><tbody>';
             
             pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
