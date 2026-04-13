@@ -406,10 +406,10 @@
         
         // ========== FINALIZAR RODADA ==========
         function finalizarRodada() {
-            if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e verificar quem fez 24 pontos ou mais. Continuar?')) return;
+            if (!confirm('⚠️ ATENÇÃO! Isso vai FINALIZAR a rodada atual e verificar quem fez 20 pontos ou mais. Continuar?')) return;
 
             const acumuladoAtual = parseFloat(document.getElementById('acumulado-atual').value) || 0;
-            const pontuacaoMinima = 24;
+            const pontuacaoMinima = 20;
 
             const pagantes = participantes.filter(p => p.pago);
             const desempenho = pagantes.map(p => {
