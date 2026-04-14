@@ -416,7 +416,7 @@
                         <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
                     </div>
                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                      </table>
+                      <table>
                         <thead>
                              <tr>
                                 <th>Pos</th>
@@ -427,7 +427,7 @@
                               </tr>
                         </thead>
                         <tbody id="ranking-body"></tbody>
-                     </table>
+                      </table>
                 </div>
             </div>
             
@@ -838,6 +838,7 @@
         
         // ========== RANKING ==========
         function atualizarRanking() {
+            // 🔥 SÓ MOSTRA PAGANTES
             const pagantes = todosParticipantes.filter(p => p && p.pago === true);
             const ranking = pagantes.map(p => ({
                 nome: p.nome,
@@ -848,7 +849,7 @@
                 document.getElementById('lider-nome').textContent = '-';
                 document.getElementById('lider-pontos').textContent = '0';
                 document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ 0,00`;
-                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante com palpites completos</td></tr>';
+                document.getElementById('ranking-body').innerHTML = '<td><td colspan="5">Nenhum participante pagante</td>'    ;
                 return;
             }
             
@@ -875,11 +876,11 @@
                 const isLider = p.total === primeiraPontuacao;
                 return `
                     <tr ${isLider ? 'class="primeiro"' : ''}>
-                        <td>${i+1}º</td>
-                        <td>${p.nome}</td>
-                        <td>${p.p3}</td>
-                        <td>${p.p1}</td>
-                        <td><strong>${p.total}</strong></td>
+                        <td>${i+1}º</td
+                        <td>${p.nome}</td
+                        <td>${p.p3}</td
+                        <td>${p.p1}</td
+                        <td><strong>${p.total}</strong></td
                     </tr>
                 `;
             }).join('');
@@ -919,9 +920,9 @@
                 html += ` <tr> <td><strong>${p.nome}</strong></td>`;
                 jogosOrdenados.forEach(j => {
                     const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}<td>`;
+                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
                 });
-                html += ' <tr>';
+                html += ' </tr>';
             });
             html += '</tbody> </table> </div>';
             
