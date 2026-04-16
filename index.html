@@ -41,7 +41,7 @@
         .jogo-card { background: white; border-radius: 12px; padding: 15px; margin: 12px 0; border-left: 5px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .jogo-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: bold; font-size: 16px; flex-wrap: wrap; }
         .time-nome { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .time-escudo { width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: white; padding: 2px; }
+        .time-escudo { width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: white; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .time-letra { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #667eea; border-radius: 50%; font-weight: bold; font-size: 12px; color: white; }
         
         .resultado-final { background: #e8f4fd; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; font-weight: 600; font-size: 14px; }
@@ -107,10 +107,9 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
-                    <!-- ACUMULADO - VAI APARECER COM VALOR DE TESTE -->
                     <div id="acumulado-card" class="acumulado-card">
                         <div class="acumulado-label">🏆 PRÊMIO ACUMULADO</div>
-                        <div class="acumulado-valor" id="acumulado-valor-jogador">R$ 100,00</div>
+                        <div class="acumulado-valor" id="acumulado-valor-jogador">R$ 0,00</div>
                         <div class="acumulado-label">para quem fizer 20 PONTOS OU MAIS na rodada!</div>
                     </div>
                     
@@ -147,8 +146,28 @@
     </div>
 
     <script>
-        // ESCUDOS DOS TIMES
-        const idsTimes = {
+        // ========== FUNÇÃO DE ESCUDOS (LOCAIS + SOFASCORE) ==========
+        // Escudos locais (coloque os PNGs na pasta /escudos/)
+        const escudosLocais = {
+            "VASCO": "vasco.png",
+            "SÃO PAULO": "sao-paulo.png",
+            "SAO PAULO": "sao-paulo.png",
+            "FLAMENGO": "flamengo.png",
+            "CORINTHIANS": "corinthians.png",
+            "PALMEIRAS": "palmeiras.png",
+            "BOTAFOGO": "botafogo.png",
+            "FLUMINENSE": "fluminense.png",
+            "SANTOS": "santos.png",
+            "GRÊMIO": "gremio.png",
+            "INTERNACIONAL": "internacional.png",
+            "CRUZEIRO": "cruzeiro.png",
+            "BAHIA": "bahia.png",
+            "ATHLETICO PR": "athletico-pr.png",
+            "CORITIBA": "coritiba.png"
+        };
+        
+        // Fallback: IDs do Sofascore (caso o escudo local não exista)
+        const idsSofascore = {
             "FLAMENGO": 346, "PALMEIRAS": 345, "CORINTHIANS": 344,
             "SÃO PAULO": 1012, "SAO PAULO": 1012, "VASCO": 347,
             "BOTAFOGO": 343, "FLUMINENSE": 350, "SANTOS": 348,
@@ -158,15 +177,34 @@
         
         function getTimeBadge(time) {
             const nomeTime = time?.toUpperCase().trim() || "";
-            for (let [key, id] of Object.entries(idsTimes)) {
+            
+            // 1º TENTATIVA: Escudo local (pasta /escudos/)
+            for (let [key, arquivo] of Object.entries(escudosLocais)) {
                 if (nomeTime.includes(key)) {
-                    return `<img src="https://images.sofascore.com/api/v1/team/${id}/image" alt="${time}" class="time-escudo" onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'"><span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
+                    return `<img src="escudos/${arquivo}" 
+                                alt="${time}" 
+                                class="time-escudo"
+                                onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'">
+                            <span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
                 }
             }
+            
+            // 2º TENTATIVA: Escudo online (Sofascore)
+            for (let [key, id] of Object.entries(idsSofascore)) {
+                if (nomeTime.includes(key)) {
+                    return `<img src="https://images.sofascore.com/api/v1/team/${id}/image" 
+                                alt="${time}" 
+                                class="time-escudo"
+                                onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'">
+                            <span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
+                }
+            }
+            
+            // 3º TENTATIVA: Fallback - mostra a primeira letra
             return `<span class="time-letra">${nomeTime.charAt(0) || "⚽"}</span>`;
         }
         
-        // FIREBASE
+        // ========== FIREBASE ==========
         const firebaseConfig = {
             apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
             authDomain: "meu-bolao-7977f.firebaseapp.com",
@@ -188,19 +226,17 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = null;
         
-        // LISTENER DO ACUMULADO - Atualiza o valor vindo do Firebase
+        // Listener do Acumulado
         db.ref('config/acumulado').on('value', (snap) => {
-            const acumulado = snap.val();
+            const acumulado = snap.val() || 0;
             const acumuladoDiv = document.getElementById('acumulado-card');
             const acumuladoValor = document.getElementById('acumulado-valor-jogador');
             if (acumuladoDiv && acumuladoValor) {
-                if (acumulado && acumulado > 0) {
+                if (acumulado > 0) {
                     acumuladoDiv.style.display = 'block';
                     acumuladoValor.innerHTML = `R$ ${acumulado.toFixed(2)}`;
                 } else {
-                    // Se não tem valor no Firebase, mostra um valor padrão de exemplo
-                    acumuladoDiv.style.display = 'block';
-                    acumuladoValor.innerHTML = `R$ 100,00`;
+                    acumuladoDiv.style.display = 'none';
                 }
             }
         });
@@ -253,16 +289,13 @@
             if (!container) return;
             container.innerHTML = '';
             
-            // Botão NOVO PALPITE
             const btnNovo = document.createElement('button');
             btnNovo.className = 'palpite-btn novo';
             btnNovo.innerHTML = '+ Novo Palpite';
             btnNovo.onclick = () => criarNovoPalpite();
             container.appendChild(btnNovo);
             
-            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) { 
-                return; 
-            }
+            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) { return; }
             
             usuarioAtual.palpites.forEach((palpite, idx) => {
                 const pago = usuarioAtual.pagamentos && usuarioAtual.pagamentos[idx];
