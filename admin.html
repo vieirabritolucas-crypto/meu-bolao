@@ -21,7 +21,7 @@
         .jogo-item input, .resultado-item input { padding: 8px; border: 2px solid #ddd; border-radius: 8px; flex: 1; }
         .resultado-item input { width: 70px; flex: none; text-align: center; font-size: 18px; }
         .participante-item { background: white; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid #667eea; }
-        .palpite-subitem { background: #f8f9fa; padding: 10px; margin: 8px 0 8px 30px; border-radius: 8px; border-left: 3px solid #27ae60; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .palpite-subitem { background: #f8f9fa; padding: 10px; margin: 8px 0 8px 30px; border-radius: 8px; border-left: 3px solid #27ae60; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; align-items: center; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 12px; text-align: center; }
         .stat-valor { font-size: 28px; font-weight: bold; }
@@ -29,6 +29,7 @@
         .btn-pago { background: #27ae60; color: white; }
         .btn-pendente { background: #e74c3c; color: white; }
         .btn-excluir { background: #95a5a6; color: white; }
+        .btn-excluir-palpite { background: #e74c3c; color: white; }
         .btn-warning { background: #f39c12; color: white; }
         .btn-primary { background: #667eea; color: white; }
         .btn-acumulado { background: #e67e22; color: white; }
@@ -221,6 +222,7 @@
             const div = document.getElementById('jogos-lista');
             if(!div) return;
             div.innerHTML = '';
+            if(jogos.length === 0) { div.innerHTML = '<p style="text-align:center;">Nenhum jogo cadastrado</p>'; return; }
             jogos.forEach(j => {
                 div.innerHTML += `<div class="jogo-item"><input type="text" id="t1_${j.id}" value="${j.time1}" placeholder="Time 1" style="flex:2"><span>VS</span><input type="text" id="t2_${j.id}" value="${j.time2}" placeholder="Time 2" style="flex:2"><input type="text" id="d_${j.id}" value="${j.data || ''}" placeholder="Data/Hora" style="width:150px"><button class="btn-excluir" onclick="removerJogo(${j.id})">Remover</button></div>`;
             });
@@ -312,6 +314,22 @@
             mostrarResultados();
         }
         
+        // Função para excluir um palpite específico do jogador
+        function excluirPalpite(celular, palpiteIdx) {
+            if(!confirm(`⚠️ Tem certeza que quer excluir APENAS este palpite? Os outros palpites do jogador serão mantidos.`)) return;
+            
+            const p = participantes.find(p => p.celular === celular);
+            if(p && p.palpites && p.palpites[palpiteIdx]) {
+                p.palpites.splice(palpiteIdx, 1);
+                if(p.pagamentos) p.pagamentos.splice(palpiteIdx, 1);
+                
+                db.ref('participantes').set(participantes);
+                alert(`✅ Palpite #${palpiteIdx+1} do jogador ${p.nome} foi excluído!`);
+                mostrarPagamentos();
+                mostrarTabelaPalpites();
+            }
+        }
+        
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             let totalPalpites = 0, totalPagos = 0;
@@ -323,15 +341,38 @@
             document.getElementById('stat-total-pendentes').textContent = totalPalpites - totalPagos;
             document.getElementById('stat-arrecadado').textContent = `R$ ${(totalPagos * valorAposta).toFixed(2)}`;
             div.innerHTML = '';
+            
+            if(participantes.length === 0) { div.innerHTML = '<p>Nenhum participante cadastrado</p>'; return; }
+            
             participantes.forEach(p => {
                 let palpitesHtml = '';
                 if(p.palpites && p.palpites.length > 0) {
                     p.palpites.forEach((palpite, idx) => {
                         const pago = p.pagamentos && p.pagamentos[idx];
-                        palpitesHtml += `<div class="palpite-subitem"><span>📋 Palpite ${idx+1} - ${pago ? '✅ PAGO' : '❌ PENDENTE'}</span><button onclick="togglePagamentoPalpite('${p.celular}', ${idx})" class="${pago ? 'btn-pendente' : 'btn-pago'}">${pago ? 'Cancelar' : 'Confirmar'}</button></div>`;
+                        palpitesHtml += `
+                            <div class="palpite-subitem">
+                                <span>📋 Palpite ${idx+1} - ${pago ? '✅ PAGO' : '❌ PENDENTE'}</span>
+                                <div>
+                                    <button onclick="togglePagamentoPalpite('${p.celular}', ${idx})" class="${pago ? 'btn-pendente' : 'btn-pago'}">${pago ? 'Cancelar' : 'Confirmar'}</button>
+                                    <button onclick="excluirPalpite('${p.celular}', ${idx})" class="btn-excluir-palpite" style="background:#e74c3c;">🗑️ Excluir Palpite</button>
+                                </div>
+                            </div>
+                        `;
                     });
+                } else {
+                    palpitesHtml = '<p style="margin-left:30px; color:#999;">Nenhum palpite criado</p>';
                 }
-                div.innerHTML += `<div class="participante-item"><div><strong>👤 ${p.nome}</strong> - 📱 ${p.celular}</div>${palpitesHtml}<div><button onclick="adicionarPalpiteJogador('${p.celular}')" class="btn-warning">+ Novo Palpite</button><button onclick="excluirJogador('${p.celular}')" class="btn-excluir">Excluir Jogador</button></div></div>`;
+                
+                div.innerHTML += `
+                    <div class="participante-item">
+                        <div><strong>👤 ${p.nome}</strong> - 📱 ${p.celular}</div>
+                        ${palpitesHtml}
+                        <div style="margin-top:10px;">
+                            <button onclick="adicionarPalpiteJogador('${p.celular}')" class="btn-warning">+ Novo Palpite</button>
+                            <button onclick="excluirJogador('${p.celular}')" class="btn-excluir">🗑️ Excluir Jogador</button>
+                        </div>
+                    </div>
+                `;
             });
         }
         
@@ -342,11 +383,20 @@
         
         function adicionarPalpiteJogador(celular) {
             const p = participantes.find(p => p.celular === celular);
-            if(p) { p.palpites.push({ id: Date.now(), palpites: [] }); p.pagamentos.push(false); db.ref('participantes').set(participantes); alert(`✅ Novo palpite para ${p.nome}`); mostrarPagamentos(); mostrarTabelaPalpites(); }
+            if(p) { 
+                if(!p.palpites) p.palpites = [];
+                if(!p.pagamentos) p.pagamentos = [];
+                p.palpites.push({ id: Date.now(), palpites: [] }); 
+                p.pagamentos.push(false); 
+                db.ref('participantes').set(participantes); 
+                alert(`✅ Novo palpite para ${p.nome}`); 
+                mostrarPagamentos(); 
+                mostrarTabelaPalpites(); 
+            }
         }
         
         function excluirJogador(celular) {
-            if(!confirm('Excluir jogador?')) return;
+            if(!confirm('⚠️ Excluir jogador remove TODOS os palpites. Confirmar?')) return;
             participantes = participantes.filter(p => p.celular !== celular);
             db.ref('participantes').set(participantes);
             mostrarPagamentos();
@@ -359,16 +409,22 @@
             let html = '<table class="tabela-palpites"><thead><tr><th>Jogador</th><th>Palpite</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
             html += '</tr></thead><tbody>';
-            participantes.forEach(p => {
-                if(p.palpites && p.palpites.length > 0) {
-                    p.palpites.forEach((palpite, idx) => {
-                        const pago = p.pagamentos && p.pagamentos[idx];
-                        html += `<tr><td>${p.nome}</td><td>#${idx+1}</td><td>${pago ? '✅' : '❌'}</td>`;
-                        jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
-                        html += '</tr>';
-                    });
-                }
-            });
+            
+            if(participantes.length === 0) { html += '<tr><td colspan="3">Nenhum participante</td></tr>'; }
+            else {
+                participantes.forEach(p => {
+                    if(p.palpites && p.palpites.length > 0) {
+                        p.palpites.forEach((palpite, idx) => {
+                            const pago = p.pagamentos && p.pagamentos[idx];
+                            html += `<tr><td>${p.nome}</td><td>#${idx+1}</td><td>${pago ? '✅' : '❌'}</td>`;
+                            jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
+                            html += '</tr>';
+                        });
+                    } else {
+                        html += `<tr><td>${p.nome}</td><td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td></tr>`;
+                    }
+                });
+            }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
@@ -395,6 +451,7 @@
             a.download = `palpites_${new Date().toLocaleDateString('pt-BR')}.csv`;
             a.click();
             URL.revokeObjectURL(url);
+            alert('✅ CSV exportado!');
         }
         
         function exportarPDF() {
@@ -403,7 +460,9 @@
             participantes.forEach(p => {
                 if(p.palpites && p.pagamentos) {
                     p.palpites.forEach((palpite, idx) => {
-                        if(p.pagamentos[idx] === true) palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, palpite: palpite });
+                        if(p.pagamentos[idx] === true) {
+                            palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, palpite: palpite });
+                        }
                     });
                 }
             });
@@ -417,7 +476,7 @@
                         const palpiteJogo = item.palpite.palpites?.find(pp => pp.jogoId === jogo.id);
                         const golsCasa = palpiteJogo ? palpiteJogo.gols1 : '---';
                         const golsVisitante = palpiteJogo ? palpiteJogo.gols2 : '---';
-                        html += `<tr><td>${jogo.time1}</td><td>${golsCasa}</td><td>x</td><td>${golsVisitante}</td><td>${jogo.time2}</td></tr>`;
+                        html += `<tr><td style="text-align:left">${jogo.time1}</td><td>${golsCasa}</td><td>x</td><td>${golsVisitante}</td><td style="text-align:left">${jogo.time2}</td></tr>`;
                     });
                     html += `</tbody></table>`;
                 });
@@ -435,6 +494,7 @@
             const novaSenha = document.getElementById('nova-senha').value;
             if(novaSenha) { db.ref('config/senha').set(novaSenha); senhaAdmin = novaSenha; alert('✅ Configurações salvas! Nova senha definida.'); }
             else alert('✅ Configurações salvas!');
+            document.getElementById('nova-senha').value = '';
         }
     </script>
 </body>
