@@ -107,10 +107,10 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
-                    <!-- ACUMULADO -->
-                    <div id="acumulado-card" class="acumulado-card" style="display: none;">
+                    <!-- ACUMULADO - VAI APARECER COM VALOR DE TESTE -->
+                    <div id="acumulado-card" class="acumulado-card">
                         <div class="acumulado-label">🏆 PRÊMIO ACUMULADO</div>
-                        <div class="acumulado-valor" id="acumulado-valor-jogador">R$ 0,00</div>
+                        <div class="acumulado-valor" id="acumulado-valor-jogador">R$ 100,00</div>
                         <div class="acumulado-label">para quem fizer 20 PONTOS OU MAIS na rodada!</div>
                     </div>
                     
@@ -188,17 +188,19 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = null;
         
-        // LISTENER DO ACUMULADO - Fora de qualquer função para carregar sempre
+        // LISTENER DO ACUMULADO - Atualiza o valor vindo do Firebase
         db.ref('config/acumulado').on('value', (snap) => {
-            const acumulado = snap.val() || 0;
+            const acumulado = snap.val();
             const acumuladoDiv = document.getElementById('acumulado-card');
             const acumuladoValor = document.getElementById('acumulado-valor-jogador');
             if (acumuladoDiv && acumuladoValor) {
-                if (acumulado > 0) {
+                if (acumulado && acumulado > 0) {
                     acumuladoDiv.style.display = 'block';
                     acumuladoValor.innerHTML = `R$ ${acumulado.toFixed(2)}`;
                 } else {
-                    acumuladoDiv.style.display = 'none';
+                    // Se não tem valor no Firebase, mostra um valor padrão de exemplo
+                    acumuladoDiv.style.display = 'block';
+                    acumuladoValor.innerHTML = `R$ 100,00`;
                 }
             }
         });
