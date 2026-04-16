@@ -146,11 +146,10 @@
     </div>
 
     <script>
-        // ========== FUNÇÃO DE ESCUDOS (COMPLETA) ==========
+        // ========== FUNÇÃO DE ESCUDOS (COMPLETA COM TODOS OS TIMES) ==========
         function getTimeBadge(time) {
             const nomeTime = time?.toUpperCase().trim() || "";
             
-            // Mapeamento com TODOS os times
             const escudosLocais = {
                 // Times principais
                 "VASCO": "vasco.png",
@@ -167,45 +166,34 @@
                 "CRUZEIRO": "cruzeiro.png",
                 "BAHIA": "bahia.png",
                 "CORITIBA": "coritiba.png",
-                
-                // Chapecoense
                 "CHAPECOENSE": "chapecoense.png",
-                "CHAPECOENSE-SC": "chapecoense.png",
-                
-                // Vitória
                 "VITÓRIA": "vitoria.png",
                 "VITORIA": "vitoria.png",
-                "VITÓRIA-BA": "vitoria.png",
-                
-                // Mirassol
                 "MIRASSOL": "mirassol.png",
-                "MIRASSOL-SP": "mirassol.png",
-                
-                // Atlético MG
-                "ATLÉTICO MG": "atletico-mg.png",
-                "ATLETICO MG": "atletico-mg.png",
-                "ATLÉTICO MINEIRO": "atletico-mg.png",
-                "ATLETICO MINEIRO": "atletico-mg.png",
-                "GALO": "atletico-mg.png",
-                
-                // Athletico PR
-                "ATHLETICO PR": "athletico-pr.png",
-                "ATHLETICO-PR": "athletico-pr.png",
-                "ATHLETICO PARANAENSE": "athletico-pr.png",
-                "CAP": "athletico-pr.png",
-                
-                // Bragantino
-                "BRAGANTINO": "bragantino.png",
-                "RED BULL BRAGANTINO": "bragantino.png",
-                "RB BRAGANTINO": "bragantino.png",
-                
-                // Remo
                 "REMO": "remo.png",
-                "REMO-PA": "remo.png",
-                "CLUBE DO REMO": "remo.png"
+                
+                // BRAGANTINO
+                "BRAGANTINO": "red-bull-bragantino.png",
+                "RED BULL BRAGANTINO": "red-bull-bragantino.png",
+                "RB BRAGANTINO": "red-bull-bragantino.png",
+                
+                // ATHLETICO PR
+                "ATHLETICO PR": "athletico-paranaense.png",
+                "ATHLETICO-PR": "athletico-paranaense.png",
+                "ATHLETICO": "athletico-paranaense.png",
+                "ATHLETICO PARANAENSE": "athletico-paranaense.png",
+                "CAP": "athletico-paranaense.png",
+                
+                // ATLÉTICO MG
+                "ATLÉTICO MG": "atletico-mineiro.png",
+                "ATLETICO MG": "atletico-mineiro.png",
+                "ATLÉTICO MINEIRO": "atletico-mineiro.png",
+                "ATLETICO MINEIRO": "atletico-mineiro.png",
+                "ATLÉTICO-MG": "atletico-mineiro.png",
+                "ATLETICO-MG": "atletico-mineiro.png",
+                "GALO": "atletico-mineiro.png"
             };
             
-            // Tenta encontrar o escudo local
             for (let [key, arquivo] of Object.entries(escudosLocais)) {
                 if (nomeTime.includes(key) || key.includes(nomeTime)) {
                     return `<img src="escudos/${arquivo}" 
@@ -474,7 +462,7 @@
                 p.palpites.forEach((palpite, idx) => {
                     html += `<tr><td><strong>${p.nome}</strong></td><td>#${idx+1}</td>`;
                     jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}</td>`; });
-                    html += '<tr>';
+                    html += '</tr>';
                 });
             });
             html += '</tbody></table></div>';
