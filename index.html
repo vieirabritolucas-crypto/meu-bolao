@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Meu Bolão</title>
+    <title>Meu Bolão - Múltiplos Palpites</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -63,6 +63,30 @@
             margin-bottom: 20px; 
         }
         
+        .palpite-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .palpite-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .palpite-btn.ativo {
+            background: #667eea;
+            color: white;
+        }
+        .palpite-btn.novo {
+            background: #27ae60;
+            color: white;
+        }
+        
         .jogo-card {
             background: white;
             border-radius: 12px;
@@ -83,12 +107,22 @@
             align-items: center;
             gap: 8px;
         }
-        .time-badge {
+        .time-escudo {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: white;
+            padding: 2px;
+            vertical-align: middle;
+        }
+        .time-letra {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
+            background: #667eea;
             border-radius: 50%;
             font-weight: bold;
             font-size: 12px;
@@ -119,11 +153,6 @@
             border-radius: 40px;
             flex: 1;
         }
-        .time-placar .time-badge {
-            width: 28px;
-            height: 28px;
-            font-size: 11px;
-        }
         .time-placar label {
             font-weight: 600;
             min-width: 70px;
@@ -138,7 +167,6 @@
             font-size: 14px;
         }
         
-        /* ========== TABELA CORRIGIDA ========== */
         .tabela-wrapper {
             overflow-x: auto;
             margin-top: 20px;
@@ -170,14 +198,6 @@
             font-weight: bold; 
         }
         
-        .ranking-destaque {
-            background: linear-gradient(135deg, #f1c40f, #f39c12);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
         .btn-primario { 
             padding: 12px 30px; 
             background: linear-gradient(135deg, #27ae60, #2ecc71); 
@@ -202,6 +222,16 @@
             border-radius: 30px;
             cursor: pointer;
             font-size: 12px;
+        }
+        .btn-excluir-palpite {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 10px;
         }
         
         #login {
@@ -238,60 +268,6 @@
             font-size: 14px;
         }
         
-        .pix-card {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin: 15px 0;
-        }
-        .pix-chave {
-            background: white;
-            color: #333;
-            padding: 15px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 16px;
-            margin: 15px 0;
-            word-break: break-all;
-        }
-        .status-pagamento {
-            background: #fff3cd;
-            padding: 12px;
-            border-radius: 30px;
-            margin: 15px 0;
-            text-align: center;
-            font-weight: 600;
-        }
-        .status-pago {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .premio-acumulado {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: white;
-            animation: pulse 2s infinite;
-        }
-        .premio-acumulado-valor {
-            font-size: 32px;
-            font-weight: bold;
-        }
-        .premio-acumulado-desc {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -323,12 +299,6 @@
             word-break: break-all;
             border: 2px solid #27ae60;
         }
-        .modal-valor {
-            font-size: 28px;
-            font-weight: bold;
-            color: #27ae60;
-            margin: 10px 0;
-        }
         .btn-fechar {
             background: #27ae60;
             color: white;
@@ -339,21 +309,19 @@
             margin-top: 15px;
             width: 100%;
         }
-        .btn-copiar {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            margin: 5px;
+        
+        .status-pagamento {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 30px;
+            margin: 10px 0;
+            text-align: center;
         }
         
         @media (max-width: 600px) {
             .container { padding: 15px; }
             .time-placar { flex-direction: column; text-align: center; }
             .time-placar label { min-width: auto; }
-            th, td { padding: 8px 10px; font-size: 12px; }
         }
     </style>
 </head>
@@ -368,11 +336,11 @@
         <div id="modalPix" class="modal">
             <div class="modal-content">
                 <h3>💳 PAGUE SEUS PALPITES!</h3>
-                <p>✅ Seus palpites foram salvos!</p>
-                <p>Para participar do bolão, faça o PIX:</p>
-                <div class="modal-valor">💰 R$ 10,00</div>
+                <p>Você tem <strong id="modal-qtd-palpites">0</strong> palpite(s) pendente(s)</p>
+                <p>Valor total: <strong id="modal-valor-total">R$ 0,00</strong></p>
+                <p>Faça o PIX para a chave abaixo:</p>
                 <div class="modal-pix-chave" id="modal-chave-pix">Carregando...</div>
-                <button class="btn-copiar" onclick="copiarChavePixModal()">📋 Copiar Chave PIX</button>
+                <button class="btn-fechar" onclick="copiarChavePixModal()">📋 Copiar Chave PIX</button>
                 <p style="font-size: 12px; margin-top: 15px;">Após o pagamento, aguarde a confirmação do administrador.</p>
                 <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
             </div>
@@ -390,10 +358,9 @@
         <!-- PAINEL PRINCIPAL -->
         <div id="painel" style="display: none;">
             <div class="tabs">
-                <div class="tab ativo" onclick="mudarAba('palpites')">📊 Palpites</div>
-                <div class="tab" onclick="mudarAba('ranking')">🏆 Ranking</div>
-                <div class="tab" onclick="mudarAba('grupo')">👥 Palpites Grupo</div>
-                <div class="tab" onclick="mudarAba('pagamento')">💳 Pagamento</div>
+                <div class="tab ativo" onclick="mudarAba('palpites', event)">📊 Meus Palpites</div>
+                <div class="tab" onclick="mudarAba('ranking', event)">🏆 Ranking</div>
+                <div class="tab" onclick="mudarAba('grupo', event)">👥 Palpites Grupo</div>
             </div>
             
             <!-- ABA PALPITES -->
@@ -401,44 +368,37 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
-                    <div id="premio-acumulado" class="premio-acumulado" style="display: none;">
-                        <h3>🏆 PRÊMIO EXTRA 🏆</h3>
-                        <div class="premio-acumulado-valor" id="acumulado-valor">R$ 0,00</div>
-                        <div class="premio-acumulado-desc">para quem fizer 20 PONTOS OU MAIS na rodada!</div>
+                    <div class="palpite-selector">
+                        <div id="lista-palpites-botoes"></div>
+                        <button class="palpite-btn novo" onclick="criarNovoPalpite()">+ Novo Palpite</button>
                     </div>
                     
                     <div id="status-pagamento" class="status-pagamento">Carregando...</div>
                     <div id="prazo-info" class="aviso" style="background: #e8f4fd; color:#333;"></div>
                     <div id="jogos-container">Carregando jogos...</div>
-                    <button class="btn-primario" onclick="salvarPalpites()">💾 Salvar Palpites</button>
+                    <button class="btn-primario" onclick="salvarPalpites()">💾 Salvar Palpite Atual</button>
                 </div>
             </div>
             
             <!-- ABA RANKING -->
             <div id="aba-ranking" class="conteudo">
                 <div class="card">
-                    <h2>🏆 Ranking</h2>
-                    <div class="ranking-destaque" id="destaque-lider">
-                        <h3>🎯 LÍDER</h3>
-                        <div class="vencedor-nome" id="lider-nome">-</div>
-                        <div class="vencedor-pontos" id="lider-pontos">0</div>
-                        <div id="lider-premio">💰 Prêmio: R$ 0,00</div>
-                    </div>
+                    <h2>🏆 Ranking (por palpite)</h2>
                     <div id="ranking-aviso" class="aviso" style="background: #f39c12; display: none;">⏳ Você só aparece no ranking após o pagamento ser confirmado!</div>
-                    
                     <div class="tabela-wrapper">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Pos</th>
-                                    <th>Nome</th>
+                                    <th>Jogador</th>
+                                    <th>Palpite #</th>
                                     <th>3pts</th>
                                     <th>1pt</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody id="ranking-body">
-                                <tr><td colspan="5" style="text-align: center;">Carregando...</td></tr>
+                                <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -448,63 +408,42 @@
             <!-- ABA PALPITES DO GRUPO -->
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
-                    <h2>👥 Palpites do Grupo</h2>
+                    <h2>👥 Todos os Palpites do Grupo</h2>
                     <div id="prazo-aviso" class="aviso">🔒 Palpites visíveis após o prazo</div>
                     <div id="palpites-grupo-container"></div>
-                </div>
-            </div>
-            
-            <!-- ABA PAGAMENTO -->
-            <div id="aba-pagamento" class="conteudo">
-                <div class="card">
-                    <h2>💳 Pagamento</h2>
-                    <div id="status-pagamento-pix" class="status-pagamento">Carregando...</div>
-                    <div class="pix-card">
-                        <p style="font-size: 16px; margin-bottom: 10px;">📱 Pague via PIX:</p>
-                        <div class="pix-chave" id="chave-pix">Carregando chave...</div>
-                        <button onclick="copiarChavePix()" class="btn-primario" style="background: white; color: #27ae60; margin-top: 10px;">📋 Copiar Chave PIX</button>
-                        <p style="font-size: 12px; margin-top: 15px;">Após o pagamento, clique no botão abaixo para confirmar:</p>
-                        <button onclick="confirmarPagamento()" id="btn-confirmar-pagamento" style="background: #f39c12;">✅ Já paguei</button>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ========== CORES DOS TIMES ==========
-        const coresTimes = {
-            "FLUMINENSE": { cor: "#960018", letra: "F" },
-            "CORINTHIANS": { cor: "#000000", letra: "C" },
-            "PALMEIRAS": { cor: "#006437", letra: "P" },
-            "SÃO PAULO": { cor: "#FF0000", letra: "S" },
-            "SANTOS": { cor: "#000000", letra: "S" },
-            "VASCO": { cor: "#000000", letra: "V" },
-            "FLAMENGO": { cor: "#FF0000", letra: "F" },
-            "BOTAFOGO": { cor: "#000000", letra: "B" },
-            "INTERNACIONAL": { cor: "#FF0000", letra: "I" },
-            "GRÊMIO": { cor: "#0000FF", letra: "G" },
-            "CRUZEIRO": { cor: "#0000FF", letra: "C" },
-            "ATLÉTICO MG": { cor: "#000000", letra: "A" },
-            "BAHIA": { cor: "#0000FF", letra: "B" },
-            "ATHLETICO PR": { cor: "#000000", letra: "A" },
-            "CORITIBA": { cor: "#006437", letra: "C" },
-            "CHAPECOENSE": { cor: "#006437", letra: "C" },
-            "MIRASOL": { cor: "#006437", letra: "M" },
-            "REMO": { cor: "#0000FF", letra: "R" },
-            "BRAGANTINO": { cor: "#FF0000", letra: "B" },
-            "VITÓRIA": { cor: "#FF0000", letra: "V" },
-            "default": { cor: "#667eea", letra: "⚽" }
+        // ========== ESCUDOS DOS TIMES (SOFASCORE - GRATUITO) ==========
+        const idsTimes = {
+            "FLAMENGO": 346, "PALMEIRAS": 345, "CORINTHIANS": 344,
+            "SÃO PAULO": 1012, "SAO PAULO": 1012, "VASCO": 347,
+            "BOTAFOGO": 343, "FLUMINENSE": 350, "SANTOS": 348,
+            "GRÊMIO": 342, "GREMIo": 342, "INTERNACIONAL": 341,
+            "INTER": 341, "CRUZEIRO": 1466, "BAHIA": 355,
+            "ATHLETICO PR": 349, "CORITIBA": 935, "BARCELONA": 5,
+            "REAL MADRID": 12, "LIVERPOOL": 11, "PSG": 13,
+            "BAYERN": 16, "ARSENAL": 8, "MANCHESTER CITY": 9,
+            "MANCHESTER UNITED": 10, "CHELSEA": 6, "JUVENTUS": 17,
+            "MILAN": 19, "ATLÉTICO MG": 133, "ATLETICO MG": 133,
+            "ATLÉTICO-MADRID": 14, "ATLETICO MADRID": 14, "SPORTING": 15
         };
         
         function getTimeBadge(time) {
             const nomeTime = time?.toUpperCase().trim() || "";
-            for (let [key, value] of Object.entries(coresTimes)) {
-                if (nomeTime.includes(key) || key.includes(nomeTime)) {
-                    return `<span class="time-badge" style="background: ${value.cor};">${value.letra}</span>`;
+            for (let [key, id] of Object.entries(idsTimes)) {
+                if (nomeTime.includes(key)) {
+                    return `<img src="https://images.sofascore.com/api/v1/team/${id}/image" 
+                                alt="${time}" 
+                                class="time-escudo"
+                                onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'">
+                            <span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
                 }
             }
-            return `<span class="time-badge" style="background: #667eea;">⚽</span>`;
+            return `<span class="time-letra">${nomeTime.charAt(0) || "⚽"}</span>`;
         }
         
         // ========== CONFIGURAÇÃO FIREBASE ==========
@@ -527,62 +466,37 @@
         let prazoFinal = null;
         let config = { valorAposta: 10, percentualPremio: 80 };
         let chavePix = "77 98843-1026";
-        let acumulado = { valorAtual: 100 };
+        let palpiteSelecionado = null;
         
-        // Carregar chave PIX
+        // Listeners Firebase
         db.ref('config/chave_pix').on('value', (snap) => {
             if (snap.val()) chavePix = snap.val();
-            document.getElementById('chave-pix').textContent = chavePix;
             document.getElementById('modal-chave-pix').textContent = chavePix;
         });
         
-        // Carregar acumulado
-        db.ref('config/acumulado').on('value', (snap) => {
-            if (snap.val()) {
-                acumulado = snap.val();
-                const acumuladoDiv = document.getElementById('premio-acumulado');
-                const acumuladoValor = document.getElementById('acumulado-valor');
-                if (acumuladoDiv && acumuladoValor) {
-                    if (acumulado.valorAtual > 0) {
-                        acumuladoDiv.style.display = 'block';
-                        acumuladoValor.innerHTML = `R$ ${acumulado.valorAtual.toFixed(2)}`;
-                    } else {
-                        acumuladoDiv.style.display = 'none';
-                    }
+        db.ref('jogos').on('value', (snap) => {
+            todosJogos = snap.val() ? Object.values(snap.val()) : [];
+            if (usuarioAtual) { mostrarJogos(); mostrarPalpitesGrupo(); atualizarRanking(); }
+        });
+        
+        db.ref('participantes').on('value', (snap) => {
+            todosParticipantes = snap.val() ? Object.values(snap.val()) : [];
+            if (usuarioAtual) {
+                const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
+                if (encontrado) usuarioAtual = encontrado;
+                if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
+                if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+                atualizarListaPalpites();
+                atualizarRanking();
+                atualizarStatusPagamento();
+                if (palpiteSelecionado === null && usuarioAtual.palpites.length > 0) {
+                    palpiteSelecionado = 0;
+                    mostrarJogos();
                 }
             }
         });
         
-        // Carregar dados
-        db.ref('jogos').on('value', (snap) => {
-            const data = snap.val();
-            todosJogos = data ? Object.values(data) : [];
-            if (usuarioAtual) {
-                mostrarJogos();
-                mostrarPalpitesGrupo();
-                atualizarRanking();
-            }
-        });
-        
-        db.ref('participantes').on('value', (snap) => {
-            const data = snap.val();
-            todosParticipantes = data ? Object.values(data) : [];
-            if (usuarioAtual) {
-                const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
-                if (encontrado) usuarioAtual = encontrado;
-                atualizarRanking();
-                mostrarPalpitesGrupo();
-                atualizarStatusPagamento();
-            }
-        });
-        
-        db.ref('prazo').on('value', (snap) => {
-            prazoFinal = snap.val();
-            if (usuarioAtual) {
-                mostrarJogos();
-                mostrarPalpitesGrupo();
-            }
-        });
+        db.ref('prazo').on('value', (snap) => { prazoFinal = snap.val(); if (usuarioAtual) { mostrarJogos(); mostrarPalpitesGrupo(); } });
         
         db.ref('config').on('value', (snap) => {
             const data = snap.val();
@@ -590,33 +504,20 @@
                 config.valorAposta = data.valorAposta || 10;
                 config.percentualPremio = data.percentualPremio || 80;
             }
-            document.getElementById('info-valor').innerHTML = `💰 Aposta: R$ ${config.valorAposta} | 1º lugar: ${config.percentualPremio}%`;
-            const modalValor = document.querySelector('.modal-valor');
-            if (modalValor) modalValor.innerHTML = `💰 R$ ${config.valorAposta.toFixed(2)}`;
+            document.getElementById('info-valor').innerHTML = `💰 Aposta: R$ ${config.valorAposta} por palpite`;
         });
         
         // ========== LOGIN ==========
         function fazerLogin() {
             const nome = document.getElementById('nome').value.trim();
             const celular = document.getElementById('celular').value.trim();
-            
-            if (!nome || !celular) {
-                alert('Preencha nome e celular!');
-                return;
-            }
+            if (!nome || !celular) { alert('Preencha nome e celular!'); return; }
             
             let participante = todosParticipantes.find(p => p && p.celular === celular);
-            
             if (!participante) {
-                participante = { 
-                    nome: nome, 
-                    celular: celular, 
-                    palpites: [], 
-                    pago: false 
-                };
+                participante = { nome, celular, palpites: [], pagamentos: [] };
                 db.ref('participantes').push(participante);
             }
-            
             usuarioAtual = participante;
             localStorage.setItem('userCelular', celular);
             
@@ -624,7 +525,13 @@
             document.getElementById('painel').style.display = 'block';
             document.getElementById('btnSair').style.display = 'inline-block';
             
+            if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
+            if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+            if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
+            else palpiteSelecionado = 0;
+            
             mostrarJogos();
+            atualizarListaPalpites();
             atualizarRanking();
             mostrarPalpitesGrupo();
             atualizarStatusPagamento();
@@ -646,7 +553,12 @@
                     document.getElementById('login').style.display = 'none';
                     document.getElementById('painel').style.display = 'block';
                     document.getElementById('btnSair').style.display = 'inline-block';
+                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
+                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+                    if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
+                    else palpiteSelecionado = 0;
                     mostrarJogos();
+                    atualizarListaPalpites();
                     atualizarRanking();
                     mostrarPalpitesGrupo();
                     atualizarStatusPagamento();
@@ -654,167 +566,135 @@
             }
         }
         
-        function prazoExpirado() {
-            return prazoFinal ? new Date() > new Date(prazoFinal) : false;
-        }
+        function prazoExpirado() { return prazoFinal ? new Date() > new Date(prazoFinal) : false; }
         
-        function atualizarStatusPagamento() {
-            const statusDiv = document.getElementById('status-pagamento');
-            const statusPixDiv = document.getElementById('status-pagamento-pix');
-            
-            if (usuarioAtual && usuarioAtual.pago) {
-                statusDiv.innerHTML = '✅ Pagamento confirmado! Você aparece no ranking.';
-                statusDiv.className = 'status-pagamento status-pago';
-                if (statusPixDiv) {
-                    statusPixDiv.innerHTML = '✅ Pagamento confirmado! Obrigado.';
-                    statusPixDiv.className = 'status-pagamento status-pago';
-                }
-                document.getElementById('btn-confirmar-pagamento').style.display = 'none';
-                document.getElementById('ranking-aviso').style.display = 'none';
-            } else {
-                statusDiv.innerHTML = `⏳ Pagamento pendente. Seus palpites já foram salvos, mas só aparecerão no ranking após o pagamento confirmado.`;
-                statusDiv.className = 'status-pagamento';
-                if (statusPixDiv) {
-                    statusPixDiv.innerHTML = `⏳ Faça um PIX de R$ ${config.valorAposta} para a chave abaixo e confirme.`;
-                    statusPixDiv.className = 'status-pagamento';
-                }
-                document.getElementById('btn-confirmar-pagamento').style.display = 'inline-block';
-                document.getElementById('ranking-aviso').style.display = 'block';
+        // ========== GERENCIAR MÚLTIPLOS PALPITES ==========
+        function atualizarListaPalpites() {
+            const container = document.getElementById('lista-palpites-botoes');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) {
+                container.innerHTML = '<span>Nenhum palpite criado</span>';
+                return;
             }
+            usuarioAtual.palpites.forEach((palpite, idx) => {
+                const pago = usuarioAtual.pagamentos && usuarioAtual.pagamentos[idx];
+                const statusIcon = pago ? '✅' : '⏳';
+                const btn = document.createElement('button');
+                btn.className = `palpite-btn ${palpiteSelecionado === idx ? 'ativo' : ''}`;
+                btn.innerHTML = `${statusIcon} Palpite ${idx + 1}`;
+                btn.onclick = () => selecionarPalpite(idx);
+                container.appendChild(btn);
+            });
         }
         
-        function confirmarPagamento() {
+        function selecionarPalpite(idx) { palpiteSelecionado = idx; atualizarListaPalpites(); mostrarJogos(); }
+        
+        function criarNovoPalpite() {
             if (!usuarioAtual) return;
-            
-            if (confirm(`Confirme que você fez o pagamento de R$ ${config.valorAposta} para a chave PIX.`)) {
-                usuarioAtual.pago = true;
-                
-                db.ref('participantes').once('value', (snap) => {
-                    const data = snap.val();
-                    if (data) {
-                        for (let key in data) {
-                            if (data[key].celular === usuarioAtual.celular) {
-                                db.ref('participantes/' + key).set(usuarioAtual);
-                                break;
-                            }
-                        }
-                    }
-                });
-                
-                alert('✅ Pagamento registrado! Aguarde a confirmação do administrador.');
-                atualizarStatusPagamento();
-                atualizarRanking();
-            }
+            usuarioAtual.palpites.push({ id: Date.now(), palpites: [] });
+            if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+            usuarioAtual.pagamentos.push(false);
+            salvarUsuarioNoFirebase();
+            palpiteSelecionado = usuarioAtual.palpites.length - 1;
+            atualizarListaPalpites();
+            mostrarJogos();
+            atualizarStatusPagamento();
+        }
+        
+        function excluirPalpite(idx) {
+            if (!confirm(`Tem certeza que quer excluir o Palpite ${idx + 1}?`)) return;
+            usuarioAtual.palpites.splice(idx, 1);
+            usuarioAtual.pagamentos.splice(idx, 1);
+            if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
+            else if (palpiteSelecionado >= usuarioAtual.palpites.length) palpiteSelecionado = usuarioAtual.palpites.length - 1;
+            salvarUsuarioNoFirebase();
+            atualizarListaPalpites();
+            mostrarJogos();
+            atualizarStatusPagamento();
         }
         
         // ========== MOSTRAR JOGOS ==========
         function mostrarJogos() {
             const container = document.getElementById('jogos-container');
             if (!container) return;
-            
-            if (!todosJogos || todosJogos.length === 0) {
-                container.innerHTML = '<p>Nenhum jogo cadastrado</p>';
-                return;
-            }
+            if (!todosJogos || todosJogos.length === 0) { container.innerHTML = '<p>Nenhum jogo cadastrado</p>'; return; }
+            if (palpiteSelecionado === null || !usuarioAtual.palpites[palpiteSelecionado]) { container.innerHTML = '<p>Crie um palpite primeiro</p>'; return; }
             
             const expirado = prazoExpirado();
             const dataPrazo = prazoFinal ? new Date(prazoFinal).toLocaleString('pt-BR') : 'Não definido';
             document.getElementById('prazo-info').innerHTML = `⏰ Prazo: ${dataPrazo} ${expirado ? '<span style="color:red;">(ENCERRADO)</span>' : ''}`;
             
+            const palpiteAtual = usuarioAtual.palpites[palpiteSelecionado];
             container.innerHTML = '';
             
             todosJogos.sort((a, b) => (a.id || 0) - (b.id || 0)).forEach(jogo => {
                 if (!jogo || !jogo.time1) return;
-                
-                const palpite = usuarioAtual.palpites?.find(p => p && p.jogoId === jogo.id);
+                const palpite = palpiteAtual.palpites?.find(p => p && p.jogoId === jogo.id);
                 const badge1 = getTimeBadge(jogo.time1);
                 const badge2 = getTimeBadge(jogo.time2);
-                
-                const temResultado = jogo.gols1 !== null && jogo.gols1 !== undefined && 
-                                    jogo.gols2 !== null && jogo.gols2 !== undefined;
-                
+                const temResultado = jogo.gols1 !== null && jogo.gols1 !== undefined && jogo.gols2 !== null && jogo.gols2 !== undefined;
                 let resultadoHTML = '';
-                if (temResultado) {
-                    resultadoHTML = `
-                        <div class="resultado-final">
-                            🏁 RESULTADO: ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${jogo.time2}
-                        </div>
-                    `;
-                }
-                
+                if (temResultado) resultadoHTML = `<div class="resultado-final">🏁 RESULTADO: ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${jogo.time2}</div>`;
                 const disabled = (temResultado || expirado) ? 'disabled' : '';
-                
                 container.innerHTML += `
                     <div class="jogo-card" data-jogo-id="${jogo.id}">
                         <div class="jogo-header">
-                            <div class="time-nome">
-                                ${badge1} ${jogo.time1} x ${badge2} ${jogo.time2}
-                            </div>
+                            <div class="time-nume">${badge1} ${jogo.time1} x ${badge2} ${jogo.time2}</div>
                             <span>${jogo.data || '--/--'}</span>
                         </div>
                         ${resultadoHTML}
                         <div class="placar-container">
-                            <div class="time-placar">
-                                ${badge1}
-                                <label>${jogo.time1}:</label>
-                                <input type="number" class="gols1" value="${palpite?.gols1 !== undefined ? palpite.gols1 : ''}" min="0" max="10" ${disabled}>
-                            </div>
-                            <div class="time-placar">
-                                ${badge2}
-                                <label>${jogo.time2}:</label>
-                                <input type="number" class="gols2" value="${palpite?.gols2 !== undefined ? palpite.gols2 : ''}" min="0" max="10" ${disabled}>
-                            </div>
+                            <div class="time-placar">${badge1}<label>${jogo.time1}:</label><input type="number" class="gols1" value="${palpite?.gols1 !== undefined ? palpite.gols1 : ''}" min="0" max="10" ${disabled}></div>
+                            <div class="time-placar">${badge2}<label>${jogo.time2}:</label><input type="number" class="gols2" value="${palpite?.gols2 !== undefined ? palpite.gols2 : ''}" min="0" max="10" ${disabled}></div>
                         </div>
                     </div>
                 `;
             });
+            
+            const btnExcluir = document.createElement('button');
+            btnExcluir.textContent = '🗑️ Excluir este Palpite';
+            btnExcluir.style.cssText = 'background:#e74c3c; color:white; border:none; padding:8px 16px; border-radius:30px; margin-top:10px; cursor:pointer;';
+            btnExcluir.onclick = () => excluirPalpite(palpiteSelecionado);
+            container.appendChild(btnExcluir);
         }
         
         // ========== SALVAR PALPITES ==========
         function salvarPalpites() {
-            if (prazoExpirado()) {
-                alert('❌ Prazo encerrado! Não é mais possível salvar.');
-                return;
-            }
+            if (prazoExpirado()) { alert('❌ Prazo encerrado! Não é mais possível salvar.'); return; }
+            if (palpiteSelecionado === null) { alert('Selecione um palpite primeiro'); return; }
             
-            const palpites = [];
+            const palpitesDoJogo = [];
             let todosPreenchidos = true;
-            
             document.querySelectorAll('.jogo-card').forEach(div => {
                 const jogoId = parseInt(div.dataset.jogoId);
                 const gols1 = div.querySelector('.gols1').value;
                 const gols2 = div.querySelector('.gols2').value;
                 const input1 = div.querySelector('.gols1');
-                
                 if (!input1.disabled) {
-                    if (gols1 === '' || gols2 === '') {
-                        todosPreenchidos = false;
-                        return;
-                    }
-                    palpites.push({ jogoId, gols1: parseInt(gols1), gols2: parseInt(gols2) });
+                    if (gols1 === '' || gols2 === '') { todosPreenchidos = false; return; }
+                    palpitesDoJogo.push({ jogoId, gols1: parseInt(gols1), gols2: parseInt(gols2) });
                 } else {
-                    const palpiteAntigo = usuarioAtual.palpites?.find(p => p && p.jogoId === jogoId);
-                    if (palpiteAntigo) palpites.push(palpiteAntigo);
+                    const palpiteAntigo = usuarioAtual.palpites[palpiteSelecionado]?.palpites?.find(p => p && p.jogoId === jogoId);
+                    if (palpiteAntigo) palpitesDoJogo.push(palpiteAntigo);
                 }
             });
+            if (!todosPreenchidos) { alert('❌ Preencha todos os jogos!'); return; }
             
-            if (!todosPreenchidos) {
-                alert('❌ Preencha todos os jogos que ainda não tem resultado!');
-                return;
-            }
-            
-            usuarioAtual.palpites = palpites;
-            
+            usuarioAtual.palpites[palpiteSelecionado].palpites = palpitesDoJogo;
+            salvarUsuarioNoFirebase();
+            alert('✅ Palpite salvo!');
+            atualizarStatusPagamento();
+            if (!usuarioAtual.pagamentos[palpiteSelecionado]) mostrarModalPix();
+        }
+        
+        function salvarUsuarioNoFirebase() {
             db.ref('participantes').once('value', (snap) => {
                 const data = snap.val();
                 if (data) {
                     for (let key in data) {
                         if (data[key].celular === usuarioAtual.celular) {
-                            db.ref('participantes/' + key).set(usuarioAtual)
-                                .then(() => {
-                                    alert('✅ Palpites salvos!');
-                                    mostrarModalPix();
-                                });
+                            db.ref('participantes/' + key).set(usuarioAtual);
                             break;
                         }
                     }
@@ -822,168 +702,103 @@
             });
         }
         
+        // ========== STATUS PAGAMENTO ==========
+        function atualizarStatusPagamento() {
+            const statusDiv = document.getElementById('status-pagamento');
+            if (!statusDiv) return;
+            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) { statusDiv.innerHTML = 'Crie um palpite para começar'; return; }
+            const totalPalpites = usuarioAtual.palpites.length;
+            const pagos = usuarioAtual.pagamentos?.filter(p => p === true).length || 0;
+            const pendentes = totalPalpites - pagos;
+            const valorTotal = totalPalpites * config.valorAposta;
+            const valorPago = pagos * config.valorAposta;
+            statusDiv.innerHTML = `📊 Total: ${totalPalpites} palpite(s) | ✅ Pago: ${pagos} | ⏳ Pendente: ${pendentes}<br>💰 Valor total: R$ ${valorTotal.toFixed(2)} | Pago: R$ ${valorPago.toFixed(2)}`;
+            statusDiv.style.background = pendentes > 0 ? '#fff3cd' : '#d4edda';
+        }
+        
         // ========== CÁLCULO DE PONTOS ==========
-        function calcularPontos(participante) {
-            if (!participante || !participante.palpites) return { total: 0, p3: 0, p1: 0 };
-            
+        function calcularPontosPalpite(palpite) {
+            if (!palpite || !palpite.palpites) return { total: 0, p3: 0, p1: 0 };
             let total = 0, p3 = 0, p1 = 0;
-            
-            participante.palpites.forEach(palpite => {
-                if (!palpite) return;
-                const jogo = todosJogos.find(j => j && j.id === palpite.jogoId);
+            palpite.palpites.forEach(p => {
+                if (!p) return;
+                const jogo = todosJogos.find(j => j && j.id === p.jogoId);
                 if (jogo && jogo.gols1 != null && jogo.gols2 != null) {
-                    if (palpite.gols1 === jogo.gols1 && palpite.gols2 === jogo.gols2) {
-                        total += 3;
-                        p3++;
-                    } else {
+                    if (p.gols1 === jogo.gols1 && p.gols2 === jogo.gols2) { total += 3; p3++; }
+                    else {
                         const resJogo = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
-                        const resPalpite = palpite.gols1 > palpite.gols2 ? 1 : palpite.gols2 > palpite.gols1 ? 2 : 0;
-                        if (resJogo === resPalpite) {
-                            total += 1;
-                            p1++;
-                        }
+                        const resPalpite = p.gols1 > p.gols2 ? 1 : p.gols2 > p.gols1 ? 2 : 0;
+                        if (resJogo === resPalpite) { total += 1; p1++; }
                     }
                 }
             });
-            
             return { total, p3, p1 };
         }
         
-        // ========== RANKING CORRIGIDO ==========
+        // ========== RANKING ==========
         function atualizarRanking() {
-            // Só mostra pagantes
-            const pagantes = todosParticipantes.filter(p => p && p.pago === true);
-            
-            // Calcula pontos
-            const ranking = pagantes.map(p => ({
-                nome: p.nome,
-                ...calcularPontos(p)
-            }));
-            
-            // Ordena por pontuação (maior para menor)
-            ranking.sort((a, b) => b.total - a.total);
-            
-            if (ranking.length === 0) {
-                document.getElementById('lider-nome').textContent = '-';
-                document.getElementById('lider-pontos').textContent = '0';
-                document.getElementById('lider-premio').innerHTML = `💰 Prêmio: R$ 0,00`;
-                document.getElementById('ranking-body').innerHTML = '<tr><td colspan="5">Nenhum participante pagante</td></tr>';
-                return;
-            }
-            
-            const primeiraPontuacao = ranking[0].total;
-            const lideres = ranking.filter(p => p.total === primeiraPontuacao);
-            const nomesLideres = lideres.map(l => l.nome).join(' e ');
-            const textoLider = lideres.length === 1 ? lideres[0].nome : nomesLideres;
-            
-            document.getElementById('lider-nome').textContent = textoLider;
-            document.getElementById('lider-pontos').textContent = ranking[0].total;
-            
-            const totalArrecadado = pagantes.length * config.valorAposta;
-            const premio = totalArrecadado * (config.percentualPremio / 100);
-            
-            const premioPorLider = lideres.length > 1 ? (premio / lideres.length).toFixed(2) : premio.toFixed(2);
-            const textoPremio = lideres.length > 1 
-                ? `💰 Prêmio: R$ ${premioPorLider} para cada um dos ${lideres.length} líderes!`
-                : `💰 Prêmio: R$ ${premio.toFixed(2)}`;
-            
-            document.getElementById('lider-premio').innerHTML = textoPremio;
-            
+            const todosPalpitesPagos = [];
+            todosParticipantes.forEach(p => {
+                if (!p.palpites) return;
+                p.palpites.forEach((palpite, idx) => {
+                    const pago = p.pagamentos && p.pagamentos[idx];
+                    if (pago) {
+                        const pontos = calcularPontosPalpite(palpite);
+                        todosPalpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, ...pontos });
+                    }
+                });
+            });
+            todosPalpitesPagos.sort((a, b) => b.total - a.total);
+            if (todosPalpitesPagos.length === 0) { document.getElementById('ranking-body').innerHTML = '<tr><td colspan="6">Nenhum palpite pago</td></tr>'; return; }
             const tbody = document.getElementById('ranking-body');
-            tbody.innerHTML = ranking.map((p, i) => {
-                const isLider = p.total === primeiraPontuacao;
-                return `
-                    <tr ${isLider ? 'class="primeiro"' : ''}>
-                        <td><strong>${i+1}º</strong></td>
-                        <td>${p.nome}</td>
-                        <td>${p.p3}</td>
-                        <td>${p.p1}</td>
-                        <td><strong>${p.total}</strong></td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = todosPalpitesPagos.map((item, i) => `<tr ${i === 0 ? 'class="primeiro"' : ''}><td><strong>${i+1}º</strong></td><td>${item.nome}</td><td>#${item.palpiteNum}</td><td>${item.p3}</td><td>${item.p1}</td><td><strong>${item.total}</strong></td></tr>`).join('');
+            if (usuarioAtual && usuarioAtual.pagamentos) { const temNaoPago = usuarioAtual.pagamentos.some(p => p === false); document.getElementById('ranking-aviso').style.display = temNaoPago ? 'block' : 'none'; }
         }
         
         // ========== PALPITES DO GRUPO ==========
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
-            
-            if (!prazoExpirado()) {
-                document.getElementById('prazo-aviso').style.display = 'block';
-                container.innerHTML = '';
-                return;
-            }
-            
+            if (!prazoExpirado()) { document.getElementById('prazo-aviso').style.display = 'block'; container.innerHTML = ''; return; }
             document.getElementById('prazo-aviso').style.display = 'none';
-            
-            const pagantes = todosParticipantes.filter(p => p && p.pago === true);
-            if (pagantes.length === 0) {
-                container.innerHTML = '<p>Nenhum participante pagante.</p>';
-                return;
-            }
-            
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
-            
-            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
-            html += '<thead> <tr><th>Participante</th>';
-            jogosOrdenados.forEach(j => {
-                const badge1 = getTimeBadge(j.time1);
-                const badge2 = getTimeBadge(j.time2);
-                html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`;
-            });
-            html += ' </tr></thead><tbody>';
-            
-            pagantes.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(p => {
-                html += ` <tr> <td><strong>${p.nome}</strong></td>`;
-                jogosOrdenados.forEach(j => {
-                    const palpite = p.palpites?.find(pp => pp && pp.jogoId === j.id);
-                    html += ` <td>${palpite ? `${palpite.gols1} x ${palpite.gols2}` : '---'}</td>`;
+            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
+            jogosOrdenados.forEach(j => { const badge1 = getTimeBadge(j.time1); const badge2 = getTimeBadge(j.time2); html += `<th>${badge1} ${j.time1}<br>x<br>${badge2} ${j.time2}</th>`; });
+            html += '</tr></thead><tbody>';
+            todosParticipantes.forEach(p => {
+                if (!p.palpites) return;
+                p.palpites.forEach((palpite, idx) => {
+                    html += `<tr><td><strong>${p.nome}</strong></td><td>#${idx+1}</td>`;
+                    jogosOrdenados.forEach(j => { const ppp = palpite.palpites?.find(pp => pp && pp.jogoId === j.id); html += `<td>${ppp ? `${ppp.gols1} x ${ppp.gols2}` : '---'}</td>`; });
+                    html += '</tr>';
                 });
-                html += ' </tr>';
             });
-            html += '</tbody> </table> </div>';
-            
+            html += '</tbody></table></div>';
             container.innerHTML = html;
         }
         
         // ========== MUDAR ABA ==========
-        function mudarAba(aba) {
+        function mudarAba(aba, event) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
             document.querySelectorAll('.conteudo').forEach(c => c.classList.remove('ativo'));
-            event.target.classList.add('ativo');
+            if (event && event.target) event.target.classList.add('ativo');
             document.getElementById(`aba-${aba}`).classList.add('ativo');
-            
             if (aba === 'ranking') atualizarRanking();
             if (aba === 'grupo') mostrarPalpitesGrupo();
-            if (aba === 'pagamento') atualizarStatusPagamento();
         }
         
-        // ========== MODAL ==========
+        // ========== MODAL PIX ==========
         function mostrarModalPix() {
-            const modal = document.getElementById('modalPix');
-            if (modal) {
-                modal.style.display = 'flex';
-            } else {
-                alert('Por favor, faça o PIX para a chave: ' + chavePix);
-            }
+            if (!usuarioAtual) return;
+            const pendentes = usuarioAtual.pagamentos?.filter(p => p === false).length || 0;
+            if (pendentes === 0) { alert('Todos os seus palpites já estão pagos!'); return; }
+            document.getElementById('modal-qtd-palpites').textContent = pendentes;
+            document.getElementById('modal-valor-total').innerHTML = `R$ ${(pendentes * config.valorAposta).toFixed(2)}`;
+            document.getElementById('modalPix').style.display = 'flex';
         }
         
-        function fecharModal() {
-            document.getElementById('modalPix').style.display = 'none';
-        }
-        
-        function copiarChavePixModal() {
-            const chave = document.getElementById('modal-chave-pix').textContent;
-            navigator.clipboard.writeText(chave);
-            alert('✅ Chave PIX copiada!');
-        }
-        
-        function copiarChavePix() {
-            const chave = document.getElementById('chave-pix').textContent;
-            navigator.clipboard.writeText(chave);
-            alert('✅ Chave PIX copiada!');
-        }
+        function fecharModal() { document.getElementById('modalPix').style.display = 'none'; }
+        function copiarChavePixModal() { navigator.clipboard.writeText(chavePix); alert('✅ Chave PIX copiada!'); }
         
         // ========== INICIALIZAR ==========
         restaurarSessao();
