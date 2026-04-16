@@ -146,41 +146,68 @@
     </div>
 
     <script>
-        // ========== FUNÇÃO DE ESCUDOS (LOCAIS + SOFASCORE) ==========
-        // Escudos locais (coloque os PNGs na pasta /escudos/)
-        const escudosLocais = {
-            "VASCO": "vasco.png",
-            "SÃO PAULO": "sao-paulo.png",
-            "SAO PAULO": "sao-paulo.png",
-            "FLAMENGO": "flamengo.png",
-            "CORINTHIANS": "corinthians.png",
-            "PALMEIRAS": "palmeiras.png",
-            "BOTAFOGO": "botafogo.png",
-            "FLUMINENSE": "fluminense.png",
-            "SANTOS": "santos.png",
-            "GRÊMIO": "gremio.png",
-            "INTERNACIONAL": "internacional.png",
-            "CRUZEIRO": "cruzeiro.png",
-            "BAHIA": "bahia.png",
-            "ATHLETICO PR": "athletico-pr.png",
-            "CORITIBA": "coritiba.png"
-        };
-        
-        // Fallback: IDs do Sofascore (caso o escudo local não exista)
-        const idsSofascore = {
-            "FLAMENGO": 346, "PALMEIRAS": 345, "CORINTHIANS": 344,
-            "SÃO PAULO": 1012, "SAO PAULO": 1012, "VASCO": 347,
-            "BOTAFOGO": 343, "FLUMINENSE": 350, "SANTOS": 348,
-            "GRÊMIO": 342, "INTERNACIONAL": 341, "CRUZEIRO": 1466,
-            "BAHIA": 355, "ATHLETICO PR": 349, "CORITIBA": 935
-        };
-        
+        // ========== FUNÇÃO DE ESCUDOS (COMPLETA) ==========
         function getTimeBadge(time) {
             const nomeTime = time?.toUpperCase().trim() || "";
             
-            // 1º TENTATIVA: Escudo local (pasta /escudos/)
+            // Mapeamento com TODOS os times
+            const escudosLocais = {
+                // Times principais
+                "VASCO": "vasco.png",
+                "SÃO PAULO": "sao-paulo.png",
+                "SAO PAULO": "sao-paulo.png",
+                "FLAMENGO": "flamengo.png",
+                "CORINTHIANS": "corinthians.png",
+                "PALMEIRAS": "palmeiras.png",
+                "BOTAFOGO": "botafogo.png",
+                "FLUMINENSE": "fluminense.png",
+                "SANTOS": "santos.png",
+                "GRÊMIO": "gremio.png",
+                "INTERNACIONAL": "internacional.png",
+                "CRUZEIRO": "cruzeiro.png",
+                "BAHIA": "bahia.png",
+                "CORITIBA": "coritiba.png",
+                
+                // Chapecoense
+                "CHAPECOENSE": "chapecoense.png",
+                "CHAPECOENSE-SC": "chapecoense.png",
+                
+                // Vitória
+                "VITÓRIA": "vitoria.png",
+                "VITORIA": "vitoria.png",
+                "VITÓRIA-BA": "vitoria.png",
+                
+                // Mirassol
+                "MIRASSOL": "mirassol.png",
+                "MIRASSOL-SP": "mirassol.png",
+                
+                // Atlético MG
+                "ATLÉTICO MG": "atletico-mg.png",
+                "ATLETICO MG": "atletico-mg.png",
+                "ATLÉTICO MINEIRO": "atletico-mg.png",
+                "ATLETICO MINEIRO": "atletico-mg.png",
+                "GALO": "atletico-mg.png",
+                
+                // Athletico PR
+                "ATHLETICO PR": "athletico-pr.png",
+                "ATHLETICO-PR": "athletico-pr.png",
+                "ATHLETICO PARANAENSE": "athletico-pr.png",
+                "CAP": "athletico-pr.png",
+                
+                // Bragantino
+                "BRAGANTINO": "bragantino.png",
+                "RED BULL BRAGANTINO": "bragantino.png",
+                "RB BRAGANTINO": "bragantino.png",
+                
+                // Remo
+                "REMO": "remo.png",
+                "REMO-PA": "remo.png",
+                "CLUBE DO REMO": "remo.png"
+            };
+            
+            // Tenta encontrar o escudo local
             for (let [key, arquivo] of Object.entries(escudosLocais)) {
-                if (nomeTime.includes(key)) {
+                if (nomeTime.includes(key) || key.includes(nomeTime)) {
                     return `<img src="escudos/${arquivo}" 
                                 alt="${time}" 
                                 class="time-escudo"
@@ -189,18 +216,7 @@
                 }
             }
             
-            // 2º TENTATIVA: Escudo online (Sofascore)
-            for (let [key, id] of Object.entries(idsSofascore)) {
-                if (nomeTime.includes(key)) {
-                    return `<img src="https://images.sofascore.com/api/v1/team/${id}/image" 
-                                alt="${time}" 
-                                class="time-escudo"
-                                onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'">
-                            <span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
-                }
-            }
-            
-            // 3º TENTATIVA: Fallback - mostra a primeira letra
+            // Fallback: mostra a primeira letra
             return `<span class="time-letra">${nomeTime.charAt(0) || "⚽"}</span>`;
         }
         
@@ -458,7 +474,7 @@
                 p.palpites.forEach((palpite, idx) => {
                     html += `<tr><td><strong>${p.nome}</strong></td><td>#${idx+1}</td>`;
                     jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}</td>`; });
-                    html += '</tr>';
+                    html += '<tr>';
                 });
             });
             html += '</tbody></table></div>';
