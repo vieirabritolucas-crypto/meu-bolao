@@ -107,6 +107,7 @@
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
                     
+                    <!-- ACUMULADO -->
                     <div id="acumulado-card" class="acumulado-card" style="display: none;">
                         <div class="acumulado-label">🏆 PRÊMIO ACUMULADO</div>
                         <div class="acumulado-valor" id="acumulado-valor-jogador">R$ 0,00</div>
@@ -128,8 +129,9 @@
                     <div class="tabela-wrapper">
                         <table>
                             <thead><tr><th>Pos</th><th>Jogador</th><th>Palpite</th><th>3pts</th><th>1pt</th><th>Total</th></tr></thead>
-                            <tbody id="ranking-body"><tr><td colspan="6">Carregando...</td></tr></tbody>
-                        </table>
+                            <tbody id="ranking-body"><tr><td colspan="6">Carregando...</td></tr>
+                        </tbody>
+                    </table>
                     </div>
                 </div>
             </div>
@@ -186,7 +188,7 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = null;
         
-        // CARREGAR ACUMULADO
+        // LISTENER DO ACUMULADO - Fora de qualquer função para carregar sempre
         db.ref('config/acumulado').on('value', (snap) => {
             const acumulado = snap.val() || 0;
             const acumuladoDiv = document.getElementById('acumulado-card');
@@ -248,7 +250,18 @@
             const container = document.getElementById('lista-palpites-botoes');
             if (!container) return;
             container.innerHTML = '';
-            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) { container.innerHTML = '<span>Nenhum palpite criado</span>'; return; }
+            
+            // Botão NOVO PALPITE
+            const btnNovo = document.createElement('button');
+            btnNovo.className = 'palpite-btn novo';
+            btnNovo.innerHTML = '+ Novo Palpite';
+            btnNovo.onclick = () => criarNovoPalpite();
+            container.appendChild(btnNovo);
+            
+            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) { 
+                return; 
+            }
+            
             usuarioAtual.palpites.forEach((palpite, idx) => {
                 const pago = usuarioAtual.pagamentos && usuarioAtual.pagamentos[idx];
                 const btn = document.createElement('button');
