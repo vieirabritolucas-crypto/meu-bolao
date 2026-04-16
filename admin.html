@@ -11,112 +11,38 @@
         body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 20px; padding: 20px; }
         h1, h2 { color: #333; text-align: center; margin-bottom: 20px; }
-        
         .tabs { display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap; justify-content: center; }
-        .tab { padding: 10px 20px; background: #e0e0e0; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .tab { padding: 10px 20px; background: #e0e0e0; border-radius: 30px; cursor: pointer; font-weight: 600; }
         .tab.ativo { background: #667eea; color: white; }
-        
         .conteudo { display: none; }
         .conteudo.ativo { display: block; }
-        
         .card { background: #f8f9fa; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
-        
-        .jogo-item, .resultado-item {
-            background: white;
-            padding: 12px 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-            border-left: 4px solid #667eea;
-        }
-        .jogo-item input, .resultado-item input {
-            padding: 8px 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            flex: 1;
-        }
-        .resultado-item input { width: 70px; flex: none; text-align: center; font-size: 18px; font-weight: bold; }
-        .resultado-item strong { min-width: 180px; }
-        
-        .participante-item {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-        .palpite-subitem {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            margin: 8px 0 8px 30px;
-            border-radius: 8px;
-            border-left: 3px solid #27ae60;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-        }
+        .jogo-item, .resultado-item { background: white; padding: 12px; margin: 10px 0; border-radius: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-left: 4px solid #667eea; }
+        .jogo-item input, .resultado-item input { padding: 8px; border: 2px solid #ddd; border-radius: 8px; flex: 1; }
+        .resultado-item input { width: 70px; flex: none; text-align: center; font-size: 18px; }
+        .participante-item { background: white; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid #667eea; }
+        .palpite-subitem { background: #f8f9fa; padding: 10px; margin: 8px 0 8px 30px; border-radius: 8px; border-left: 3px solid #27ae60; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 12px; text-align: center; }
         .stat-valor { font-size: 28px; font-weight: bold; }
-        .stat-label { font-size: 12px; opacity: 0.9; margin-top: 5px; }
-        
-        button {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 13px;
-            margin: 3px;
-            font-weight: 600;
-        }
+        button { padding: 8px 18px; border: none; border-radius: 30px; cursor: pointer; font-size: 13px; margin: 3px; font-weight: 600; }
         .btn-pago { background: #27ae60; color: white; }
         .btn-pendente { background: #e74c3c; color: white; }
         .btn-excluir { background: #95a5a6; color: white; }
         .btn-warning { background: #f39c12; color: white; }
         .btn-primary { background: #667eea; color: white; }
-        
-        .tabela-palpites {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            overflow-x: auto;
-            display: block;
-        }
-        .tabela-palpites th, .tabela-palpites td {
-            padding: 8px 6px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
+        .btn-acumulado { background: #e67e22; color: white; }
+        .tabela-palpites { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; display: block; }
+        .tabela-palpites th, .tabela-palpites td { padding: 8px; border: 1px solid #ddd; text-align: center; }
         .tabela-palpites th { background: #667eea; color: white; }
-        
         .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
         .input-group input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; }
-        
-        .acoes-botoes { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
-        
-        @media (max-width: 768px) {
-            .container { padding: 15px; }
-            .jogo-item, .resultado-item { flex-direction: column; align-items: stretch; }
-            .palpite-subitem { flex-direction: column; margin-left: 10px; }
-        }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .acumulado-card { background: linear-gradient(135deg, #e67e22, #f39c12); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
+        .acumulado-valor { font-size: 32px; font-weight: bold; }
+        .acumulado-label { font-size: 12px; opacity: 0.9; }
+        @media (max-width: 768px) { .container { padding: 15px; } .jogo-item, .resultado-item { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -125,7 +51,7 @@
         
         <div id="login-admin" style="max-width: 350px; margin: 50px auto;">
             <div class="card">
-                <h2 style="text-align:center;">🔐 Acesso Restrito</h2>
+                <h2>🔐 Acesso Restrito</h2>
                 <input type="password" id="senha" placeholder="Digite a senha" style="width:100%; padding:12px; margin:10px 0; border-radius:30px;">
                 <button onclick="verificarSenha()" style="width:100%; padding:12px; background:#667eea; color:white;">Entrar</button>
                 <div id="erro-senha" style="color:red; margin-top:10px; text-align:center;"></div>
@@ -133,9 +59,12 @@
         </div>
         
         <div id="conteudo-admin" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+            <div class="top-bar">
                 <h2 style="margin:0;">⚽ Admin</h2>
-                <button onclick="logoutAdmin()" class="btn-pendente">🚪 Sair</button>
+                <div>
+                    <button onclick="abrirSiteJogador()" class="btn-pago">👥 Site do Jogador</button>
+                    <button onclick="logoutAdmin()" class="btn-pendente">🚪 Sair</button>
+                </div>
             </div>
             
             <div class="tabs">
@@ -148,10 +77,8 @@
             
             <div id="aba-jogos" class="conteudo ativo">
                 <div class="card">
-                    <div class="acoes-botoes">
-                        <button onclick="adicionarJogo()" class="btn-pago">+ Adicionar Jogo</button>
-                        <button onclick="salvarJogos()" class="btn-primary">💾 Salvar Jogos</button>
-                    </div>
+                    <button onclick="adicionarJogo()" class="btn-pago">+ Adicionar Jogo</button>
+                    <button onclick="salvarJogos()" class="btn-primary">💾 Salvar Jogos</button>
                     <div id="jogos-lista"></div>
                     <div class="input-group">
                         <label>⏰ Prazo final para palpites:</label>
@@ -163,21 +90,19 @@
             <div id="aba-resultados" class="conteudo">
                 <div class="card">
                     <div id="resultados-lista"></div>
-                    <div class="acoes-botoes">
-                        <button onclick="salvarResultados()" class="btn-warning">💾 Salvar Resultados</button>
-                        <button onclick="finalizarRodada()" style="background:#e67e22; color:white;">🏁 FINALIZAR RODADA</button>
-                    </div>
+                    <button onclick="salvarResultados()" class="btn-warning">💾 Salvar Resultados</button>
+                    <button onclick="finalizarRodada()" class="btn-acumulado">🏁 FINALIZAR RODADA</button>
                 </div>
             </div>
             
             <div id="aba-pagamentos" class="conteudo">
                 <div class="card">
                     <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-participantes">0</div><div class="stat-label">Jogadores</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-palpites">0</div><div class="stat-label">Total Palpites</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-pagos">0</div><div class="stat-label">Pagos ✅</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-total-pendentes">0</div><div class="stat-label">Pendentes ❌</div></div>
-                        <div class="stat-card"><div class="stat-valor" id="stat-arrecadado">R$0</div><div class="stat-label">Arrecadado</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-total-participantes">0</div><div>Jogadores</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-total-palpites">0</div><div>Total Palpites</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-total-pagos">0</div><div>Pagos ✅</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-total-pendentes">0</div><div>Pendentes ❌</div></div>
+                        <div class="stat-card"><div class="stat-valor" id="stat-arrecadado">R$0</div><div>Arrecadado</div></div>
                     </div>
                     <div id="pagamentos-lista"></div>
                 </div>
@@ -185,21 +110,32 @@
             
             <div id="aba-palpites" class="conteudo">
                 <div class="card">
-                    <div class="acoes-botoes">
-                        <button onclick="exportarCSV()" class="btn-warning">📊 Exportar CSV</button>
-                        <button onclick="exportarPDF()" class="btn-warning">📄 Exportar PDF</button>
-                    </div>
-                    <div style="overflow-x: auto;"><div id="tabela-palpites-container"></div></div>
+                    <button onclick="exportarCSV()" class="btn-warning">📊 Exportar CSV</button>
+                    <button onclick="exportarPDF()" class="btn-warning">📄 Exportar PDF</button>
+                    <div style="overflow-x: auto; margin-top: 15px;"><div id="tabela-palpites-container"></div></div>
                 </div>
             </div>
             
             <div id="aba-config" class="conteudo">
                 <div class="card">
+                    <div class="acumulado-card">
+                        <div class="acumulado-label">🏆 PRÊMIO ACUMULADO</div>
+                        <div class="acumulado-valor" id="acumulado-exibicao">R$ 0,00</div>
+                        <div class="acumulado-label">para quem fizer 20 PONTOS OU MAIS na rodada!</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🏆 Valor do Prêmio Acumulado (R$):</label>
+                        <input type="number" id="acumulado-valor" value="0" step="50" min="0">
+                        <small>Quem fizer 20 PONTOS OU MAIS leva este prêmio!</small>
+                    </div>
+                    <button onclick="salvarAcumulado()" class="btn-acumulado" style="margin-bottom:20px;">💾 Salvar Acumulado</button>
+                    
                     <div class="input-group"><label>💵 Valor por palpite (R$):</label><input type="number" id="valor-aposta" value="10" step="5"></div>
                     <div class="input-group"><label>🏆 Percentual para 1º lugar (%):</label><input type="number" id="percentual-premio" value="80" min="50" max="100"></div>
                     <div class="input-group"><label>📱 Chave PIX:</label><input type="text" id="chave-pix" placeholder="Chave PIX"></div>
                     <div class="input-group"><label>🔐 Nova senha admin:</label><input type="password" id="nova-senha" placeholder="Deixe em branco para não alterar"></div>
-                    <div class="acoes-botoes"><button onclick="salvarConfig()" class="btn-pago">💾 Salvar Configurações</button></div>
+                    <button onclick="salvarConfig()" class="btn-pago">💾 Salvar Configurações</button>
                 </div>
             </div>
         </div>
@@ -221,8 +157,10 @@
         
         let jogos = [];
         let participantes = [];
-        let senhaAdmin = "admin123";
+        let senhaAdmin = "082602";
+        let acumuladoAtual = 0;
         
+        // Listeners
         db.ref('config/senha').on('value', (snap) => { if (snap.val()) senhaAdmin = snap.val(); });
         db.ref('jogos').on('value', (snap) => { jogos = snap.val() ? Object.values(snap.val()) : []; mostrarJogos(); mostrarResultados(); mostrarTabelaPalpites(); });
         db.ref('participantes').on('value', (snap) => { participantes = snap.val() ? Object.values(snap.val()) : []; mostrarPagamentos(); mostrarTabelaPalpites(); });
@@ -235,13 +173,25 @@
                 if(data.chave_pix) document.getElementById('chave-pix').value = data.chave_pix;
             }
         });
+        db.ref('config/acumulado').on('value', (snap) => {
+            acumuladoAtual = snap.val() || 0;
+            document.getElementById('acumulado-valor').value = acumuladoAtual;
+            document.getElementById('acumulado-exibicao').innerHTML = `R$ ${acumuladoAtual.toFixed(2)}`;
+        });
+        
+        function abrirSiteJogador() { window.open('https://meu-bolao-teal.vercel.app/index.html', '_blank'); }
+        
+        function salvarAcumulado() {
+            const valor = parseFloat(document.getElementById('acumulado-valor').value) || 0;
+            db.ref('config/acumulado').set(valor);
+            alert(`✅ Prêmio acumulado de R$ ${valor.toFixed(2)} salvo! Quem fizer 20+ pontos leva!`);
+        }
         
         function verificarSenha() {
             if (document.getElementById('senha').value === senhaAdmin) {
                 document.getElementById('login-admin').style.display = 'none';
                 document.getElementById('conteudo-admin').style.display = 'block';
                 sessionStorage.setItem('adminLogado', 'true');
-                document.getElementById('erro-senha').textContent = '';
             } else {
                 document.getElementById('erro-senha').textContent = 'Senha incorreta!';
             }
@@ -251,7 +201,6 @@
             sessionStorage.removeItem('adminLogado');
             document.getElementById('login-admin').style.display = 'block';
             document.getElementById('conteudo-admin').style.display = 'none';
-            document.getElementById('senha').value = '';
         }
         
         if (sessionStorage.getItem('adminLogado') === 'true') {
@@ -272,7 +221,6 @@
             const div = document.getElementById('jogos-lista');
             if(!div) return;
             div.innerHTML = '';
-            if(jogos.length === 0) { div.innerHTML = '<p style="text-align:center;">Nenhum jogo cadastrado</p>'; return; }
             jogos.forEach(j => {
                 div.innerHTML += `<div class="jogo-item"><input type="text" id="t1_${j.id}" value="${j.time1}" placeholder="Time 1" style="flex:2"><span>VS</span><input type="text" id="t2_${j.id}" value="${j.time2}" placeholder="Time 2" style="flex:2"><input type="text" id="d_${j.id}" value="${j.data || ''}" placeholder="Data/Hora" style="width:150px"><button class="btn-excluir" onclick="removerJogo(${j.id})">Remover</button></div>`;
             });
@@ -284,9 +232,7 @@
             db.ref('jogos').set(jogos);
         }
         
-        function removerJogo(id) {
-            if(confirm('Remover este jogo?')) { jogos = jogos.filter(j => j.id !== id); db.ref('jogos').set(jogos); }
-        }
+        function removerJogo(id) { jogos = jogos.filter(j => j.id !== id); db.ref('jogos').set(jogos); }
         
         function salvarJogos() {
             jogos.forEach(j => { j.time1 = document.getElementById(`t1_${j.id}`).value; j.time2 = document.getElementById(`t2_${j.id}`).value; j.data = document.getElementById(`d_${j.id}`).value; });
@@ -297,10 +243,9 @@
         
         function mostrarResultados() {
             const div = document.getElementById('resultados-lista');
-            if(!div) return;
             div.innerHTML = '';
             jogos.forEach(j => {
-                div.innerHTML += `<div class="resultado-item"><strong>${j.time1} x ${j.time2}</strong><input type="number" id="r1_${j.id}" value="${j.gols1 !== null ? j.gols1 : ''}" placeholder="0" min="0" style="width:70px"><span>x</span><input type="number" id="r2_${j.id}" value="${j.gols2 !== null ? j.gols2 : ''}" placeholder="0" min="0" style="width:70px"></div>`;
+                div.innerHTML += `<div class="resultado-item"><strong style="width:180px">${j.time1} x ${j.time2}</strong><input type="number" id="r1_${j.id}" value="${j.gols1 !== null ? j.gols1 : ''}" placeholder="0" min="0" style="width:70px"><span>x</span><input type="number" id="r2_${j.id}" value="${j.gols2 !== null ? j.gols2 : ''}" placeholder="0" min="0" style="width:70px"></div>`;
             });
         }
         
@@ -312,19 +257,63 @@
         }
         
         function finalizarRodada() {
-            if(!confirm('⚠️ Finalizar rodada vai zerar todos os palpites para a próxima. Continuar?')) return;
+            if(!confirm('⚠️ Finalizar rodada vai zerar todos os palpites e verificar quem fez 20+ pontos. Continuar?')) return;
+            
+            // Calcular quem fez 20+ pontos
+            const pagantes = participantes.filter(p => p.pago);
+            const desempenho = [];
+            pagantes.forEach(p => {
+                let totalPontos = 0;
+                if(p.palpites) {
+                    p.palpites.forEach(palpite => {
+                        if(palpite.palpites) {
+                            palpite.palpites.forEach(pp => {
+                                const jogo = jogos.find(j => j.id === pp.jogoId);
+                                if(jogo && jogo.gols1 !== null && jogo.gols2 !== null) {
+                                    if(pp.gols1 === jogo.gols1 && pp.gols2 === jogo.gols2) totalPontos += 3;
+                                    else {
+                                        const resJogo = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
+                                        const resPalpite = pp.gols1 > pp.gols2 ? 1 : pp.gols2 > pp.gols1 ? 2 : 0;
+                                        if(resJogo === resPalpite) totalPontos += 1;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                desempenho.push({ nome: p.nome, pontos: totalPontos });
+            });
+            
+            const vencedores = desempenho.filter(d => d.pontos >= 20);
+            
+            if(vencedores.length > 0 && acumuladoAtual > 0) {
+                const premioIndividual = acumuladoAtual / vencedores.length;
+                let msg = `🏆 PRÊMIO ACUMULADO DE R$ ${acumuladoAtual.toFixed(2)} ATINGIDO! 🏆\n\n`;
+                msg += `${vencedores.length} participante(s) fez(eram) 20+ pontos:\n`;
+                msg += vencedores.map(v => `${v.nome} (${v.pontos} pts)`).join('\n');
+                msg += `\n\n💰 Cada um receberá R$ ${premioIndividual.toFixed(2)}!`;
+                alert(msg);
+                
+                // Zerar acumulado após premiação
+                db.ref('config/acumulado').set(0);
+            } else if(acumuladoAtual > 0) {
+                alert(`⚠️ Ninguém fez 20 pontos ou mais.\n💰 Prêmio acumulado de R$ ${acumuladoAtual.toFixed(2)} vai para a próxima rodada!`);
+            }
+            
+            // Zerar palpites e resultados para nova rodada
             participantes.forEach(p => { p.palpites = []; p.pagamentos = []; });
             jogos.forEach(j => { j.gols1 = null; j.gols2 = null; });
+            
             db.ref('participantes').set(participantes);
             db.ref('jogos').set(jogos);
-            alert('✅ Rodada finalizada!');
+            alert('✅ Rodada finalizada! Próxima rodada pronta.');
             mostrarPagamentos();
             mostrarTabelaPalpites();
+            mostrarResultados();
         }
         
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
-            if(!div) return;
             let totalPalpites = 0, totalPagos = 0;
             participantes.forEach(p => { if(p.palpites) totalPalpites += p.palpites.length; if(p.pagamentos) totalPagos += p.pagamentos.filter(pg => pg === true).length; });
             const valorAposta = parseInt(document.getElementById('valor-aposta').value) || 10;
@@ -333,17 +322,16 @@
             document.getElementById('stat-total-pagos').textContent = totalPagos;
             document.getElementById('stat-total-pendentes').textContent = totalPalpites - totalPagos;
             document.getElementById('stat-arrecadado').textContent = `R$ ${(totalPagos * valorAposta).toFixed(2)}`;
-            if(participantes.length === 0) { div.innerHTML = '<p>Nenhum participante</p>'; return; }
             div.innerHTML = '';
             participantes.forEach(p => {
                 let palpitesHtml = '';
                 if(p.palpites && p.palpites.length > 0) {
                     p.palpites.forEach((palpite, idx) => {
                         const pago = p.pagamentos && p.pagamentos[idx];
-                        palpitesHtml += `<div class="palpite-subitem"><span><strong>📋 Palpite ${idx+1}</strong> - ${pago ? '✅ PAGO' : '❌ PENDENTE'}</span><button onclick="togglePagamentoPalpite('${p.celular}', ${idx})" class="${pago ? 'btn-pendente' : 'btn-pago'}">${pago ? 'Cancelar' : 'Confirmar'}</button></div>`;
+                        palpitesHtml += `<div class="palpite-subitem"><span>📋 Palpite ${idx+1} - ${pago ? '✅ PAGO' : '❌ PENDENTE'}</span><button onclick="togglePagamentoPalpite('${p.celular}', ${idx})" class="${pago ? 'btn-pendente' : 'btn-pago'}">${pago ? 'Cancelar' : 'Confirmar'}</button></div>`;
                     });
-                } else { palpitesHtml = '<p style="margin-left:30px; color:#999;">Nenhum palpite criado</p>'; }
-                div.innerHTML += `<div class="participante-item"><div><strong>👤 ${p.nome}</strong> - 📱 ${p.celular}</div>${palpitesHtml}<div style="margin-top:10px;"><button onclick="adicionarPalpiteJogador('${p.celular}')" class="btn-warning">+ Novo Palpite</button><button onclick="excluirJogador('${p.celular}')" class="btn-excluir">Excluir Jogador</button></div></div>`;
+                }
+                div.innerHTML += `<div class="participante-item"><div><strong>👤 ${p.nome}</strong> - 📱 ${p.celular}</div>${palpitesHtml}<div><button onclick="adicionarPalpiteJogador('${p.celular}')" class="btn-warning">+ Novo Palpite</button><button onclick="excluirJogador('${p.celular}')" class="btn-excluir">Excluir Jogador</button></div></div>`;
             });
         }
         
@@ -354,11 +342,11 @@
         
         function adicionarPalpiteJogador(celular) {
             const p = participantes.find(p => p.celular === celular);
-            if(p) { if(!p.palpites) p.palpites = []; if(!p.pagamentos) p.pagamentos = []; p.palpites.push({ id: Date.now(), palpites: [] }); p.pagamentos.push(false); db.ref('participantes').set(participantes); alert(`✅ Novo palpite para ${p.nome}`); mostrarPagamentos(); mostrarTabelaPalpites(); }
+            if(p) { p.palpites.push({ id: Date.now(), palpites: [] }); p.pagamentos.push(false); db.ref('participantes').set(participantes); alert(`✅ Novo palpite para ${p.nome}`); mostrarPagamentos(); mostrarTabelaPalpites(); }
         }
         
         function excluirJogador(celular) {
-            if(!confirm('⚠️ Excluir jogador remove TODOS os palpites. Confirmar?')) return;
+            if(!confirm('Excluir jogador?')) return;
             participantes = participantes.filter(p => p.celular !== celular);
             db.ref('participantes').set(participantes);
             mostrarPagamentos();
@@ -367,7 +355,6 @@
         
         function mostrarTabelaPalpites() {
             const container = document.getElementById('tabela-palpites-container');
-            if(!container) return;
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
             let html = '<table class="tabela-palpites"><thead><tr><th>Jogador</th><th>Palpite</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
@@ -380,7 +367,7 @@
                         jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
                         html += '</tr>';
                     });
-                } else { html += `<tr><td>${p.nome}</td><td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td></tr>`; }
+                }
             });
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -392,7 +379,7 @@
             jogosOrdenados.forEach(j => csv += `;${j.time1} x ${j.time2}`);
             csv += '\n';
             participantes.forEach(p => {
-                if(p.palpites && p.palpites.length > 0) {
+                if(p.palpites) {
                     p.palpites.forEach((palpite, idx) => {
                         const pago = p.pagamentos && p.pagamentos[idx];
                         csv += `${p.nome};#${idx+1};${pago ? 'Sim' : 'Não'}`;
@@ -408,7 +395,6 @@
             a.download = `palpites_${new Date().toLocaleDateString('pt-BR')}.csv`;
             a.click();
             URL.revokeObjectURL(url);
-            alert('✅ CSV exportado!');
         }
         
         function exportarPDF() {
@@ -417,14 +403,12 @@
             participantes.forEach(p => {
                 if(p.palpites && p.pagamentos) {
                     p.palpites.forEach((palpite, idx) => {
-                        if(p.pagamentos[idx] === true) {
-                            palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, palpite: palpite });
-                        }
+                        if(p.pagamentos[idx] === true) palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, palpite: palpite });
                     });
                 }
             });
             let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Palpites - Meu Bolão</title><style>body{font-family:Arial;margin:20px;}h2{margin:20px 0 10px;}table{width:100%;border-collapse:collapse;margin-bottom:30px;}th,td{border:1px solid #000;padding:8px;text-align:center;}th{background:#f0f0f0;}.page-break{page-break-before:always;}</style></head><body>`;
-            if(palpitesPagos.length === 0) { html += '<p>Nenhum palpite pago confirmado.</p>'; }
+            if(palpitesPagos.length === 0) html += '<p>Nenhum palpite pago confirmado.</p>';
             else {
                 palpitesPagos.forEach((item, index) => {
                     if(index > 0) html += `<div class="page-break"></div>`;
@@ -450,8 +434,7 @@
             db.ref('config').update(config);
             const novaSenha = document.getElementById('nova-senha').value;
             if(novaSenha) { db.ref('config/senha').set(novaSenha); senhaAdmin = novaSenha; alert('✅ Configurações salvas! Nova senha definida.'); }
-            else { alert('✅ Configurações salvas!'); }
-            document.getElementById('nova-senha').value = '';
+            else alert('✅ Configurações salvas!');
         }
     </script>
 </body>
