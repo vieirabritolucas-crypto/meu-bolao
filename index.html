@@ -128,7 +128,7 @@
                     <div class="tabela-wrapper">
                         <table>
                             <thead><tr><th>Pos</th><th>Jogador</th><th>Palpite</th><th>3pts</th><th>1pt</th><th>Total</th></tr></thead>
-                            <tbody id="ranking-body"><tr><td colspan="6">Carregando...</td></tr>
+                            <tbody id="ranking-body"><tr><td colspan="6">Carregando...NonNull</tbody>
                         </tbody>
                     </table>
                     </div>
@@ -146,65 +146,27 @@
     </div>
 
     <script>
-        // ========== FUNÇÃO DE ESCUDOS (COMPLETA COM TODOS OS TIMES) ==========
+        // ========== FUNÇÃO DE ESCUDOS ==========
         function getTimeBadge(time) {
             const nomeTime = time?.toUpperCase().trim() || "";
             
             const escudosLocais = {
-                // Times principais
-                "VASCO": "vasco.png",
-                "SÃO PAULO": "sao-paulo.png",
-                "SAO PAULO": "sao-paulo.png",
-                "FLAMENGO": "flamengo.png",
-                "CORINTHIANS": "corinthians.png",
-                "PALMEIRAS": "palmeiras.png",
-                "BOTAFOGO": "botafogo.png",
-                "FLUMINENSE": "fluminense.png",
-                "SANTOS": "santos.png",
-                "GRÊMIO": "gremio.png",
-                "INTERNACIONAL": "internacional.png",
-                "CRUZEIRO": "cruzeiro.png",
-                "BAHIA": "bahia.png",
-                "CORITIBA": "coritiba.png",
-                "CHAPECOENSE": "chapecoense.png",
-                "VITÓRIA": "vitoria.png",
-                "VITORIA": "vitoria.png",
-                "MIRASSOL": "mirassol.png",
-                "REMO": "remo.png",
-                
-                // BRAGANTINO
-                "BRAGANTINO": "red-bull-bragantino.png",
-                "RED BULL BRAGANTINO": "red-bull-bragantino.png",
-                "RB BRAGANTINO": "red-bull-bragantino.png",
-                
-                // ATHLETICO PR
-                "ATHLETICO PR": "athletico-paranaense.png",
-                "ATHLETICO-PR": "athletico-paranaense.png",
-                "ATHLETICO": "athletico-paranaense.png",
-                "ATHLETICO PARANAENSE": "athletico-paranaense.png",
-                "CAP": "athletico-paranaense.png",
-                
-                // ATLÉTICO MG
-                "ATLÉTICO MG": "atletico-mineiro.png",
-                "ATLETICO MG": "atletico-mineiro.png",
-                "ATLÉTICO MINEIRO": "atletico-mineiro.png",
-                "ATLETICO MINEIRO": "atletico-mineiro.png",
-                "ATLÉTICO-MG": "atletico-mineiro.png",
-                "ATLETICO-MG": "atletico-mineiro.png",
-                "GALO": "atletico-mineiro.png"
+                "VASCO": "vasco.png", "SÃO PAULO": "sao-paulo.png", "SAO PAULO": "sao-paulo.png",
+                "FLAMENGO": "flamengo.png", "CORINTHIANS": "corinthians.png", "PALMEIRAS": "palmeiras.png",
+                "BOTAFOGO": "botafogo.png", "FLUMINENSE": "fluminense.png", "SANTOS": "santos.png",
+                "GRÊMIO": "gremio.png", "INTERNACIONAL": "internacional.png", "CRUZEIRO": "cruzeiro.png",
+                "BAHIA": "bahia.png", "CORITIBA": "coritiba.png", "CHAPECOENSE": "chapecoense.png",
+                "VITÓRIA": "vitoria.png", "VITORIA": "vitoria.png", "MIRASSOL": "mirassol.png",
+                "REMO": "remo.png", "BRAGANTINO": "red-bull-bragantino.png", "RED BULL BRAGANTINO": "red-bull-bragantino.png",
+                "ATHLETICO PR": "athletico-paranaense.png", "ATHLETICO-PR": "athletico-paranaense.png",
+                "ATLÉTICO MG": "atletico-mineiro.png", "ATLETICO MG": "atletico-mineiro.png", "GALO": "atletico-mineiro.png"
             };
             
             for (let [key, arquivo] of Object.entries(escudosLocais)) {
                 if (nomeTime.includes(key) || key.includes(nomeTime)) {
-                    return `<img src="escudos/${arquivo}" 
-                                alt="${time}" 
-                                class="time-escudo"
-                                onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'">
-                            <span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
+                    return `<img src="escudos/${arquivo}" alt="${time}" class="time-escudo" onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'"><span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
                 }
             }
-            
-            // Fallback: mostra a primeira letra
             return `<span class="time-letra">${nomeTime.charAt(0) || "⚽"}</span>`;
         }
         
@@ -230,7 +192,6 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = null;
         
-        // Listener do Acumulado
         db.ref('config/acumulado').on('value', (snap) => {
             const acumulado = snap.val() || 0;
             const acumuladoDiv = document.getElementById('acumulado-card');
@@ -430,6 +391,7 @@
             return { total, p3, p1 };
         }
         
+        // RANKING CORRIGIDO - Ordem alfabética antes da rodada, por pontuação depois
         function atualizarRanking() {
             const palpitesPagos = [];
             todosParticipantes.forEach(p => {
@@ -441,27 +403,75 @@
                     }
                 });
             });
-            palpitesPagos.sort((a, b) => b.total - a.total);
+            
+            // Verifica se todos têm 0 pontos (antes da rodada)
+            const todosZero = palpitesPagos.every(p => p.total === 0);
+            
+            if (todosZero) {
+                // Antes da rodada: ordena por nome (A-Z)
+                palpitesPagos.sort((a, b) => a.nome.localeCompare(b.nome));
+            } else {
+                // Durante/depois: ordena por pontuação, depois por nome
+                palpitesPagos.sort((a, b) => {
+                    if (a.total !== b.total) return b.total - a.total;
+                    return a.nome.localeCompare(b.nome);
+                });
+            }
+            
             const tbody = document.getElementById('ranking-body');
-            if (palpitesPagos.length === 0) { tbody.innerHTML = '<tr><td colspan="6">Nenhum palpite pago</td></tr>'; return; }
-            tbody.innerHTML = palpitesPagos.map((item, i) => `<tr ${i === 0 ? 'class="primeiro"' : ''}><td><strong>${i+1}º</strong></td><td>${item.nome}</td><td>#${item.palpiteNum}</td><td>${item.p3}</td><td>${item.p1}</td><td><strong>${item.total}</strong></td></tr>`).join('');
-            if (usuarioAtual && usuarioAtual.pagamentos) { document.getElementById('ranking-aviso').style.display = usuarioAtual.pagamentos.some(p => p === false) ? 'block' : 'none'; }
+            if (palpitesPagos.length === 0) { tbody.innerHTML = '<tr><td colspan="6">Nenhum palpite pagoNonNull</tbody>'; return; }
+            
+            let posicao = 1;
+            let pontosAnterior = null;
+            let posicaoAtual = 1;
+            
+            tbody.innerHTML = palpitesPagos.map((item, i) => {
+                if (item.total !== pontosAnterior) {
+                    posicaoAtual = i + 1;
+                }
+                posicao = posicaoAtual;
+                pontosAnterior = item.total;
+                
+                const isLider = posicao === 1;
+                const isEmpate = i > 0 && item.total === palpitesPagos[i-1].total;
+                
+                return `<tr ${isLider ? 'class="primeiro"' : ''}>
+                            <td><strong>${posicao}º</strong></td>
+                            <td>${item.nome}${isEmpate ? ' (empatado)' : ''}NonNull
+                            <td>#${item.palpiteNum}NonNull
+                            <td>${item.p3}NonNull
+                            <td>${item.p1}NonNull
+                            <td><strong>${item.total}</strong>NonNull
+                        </tr>`;
+            }).join('');
+            
+            if (usuarioAtual && usuarioAtual.pagamentos) { 
+                document.getElementById('ranking-aviso').style.display = usuarioAtual.pagamentos.some(p => p === false) ? 'block' : 'none'; 
+            }
         }
         
+        // PALPITES DO GRUPO - Ordem alfabética
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
             if (!prazoExpirado()) { document.getElementById('prazo-aviso').style.display = 'block'; container.innerHTML = ''; return; }
             document.getElementById('prazo-aviso').style.display = 'none';
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
+            
+            // Ordenar participantes por nome (A-Z)
+            const participantesOrdenados = [...todosParticipantes].sort((a, b) => a.nome.localeCompare(b.nome));
+            
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
             jogosOrdenados.forEach(j => { const b1 = getTimeBadge(j.time1); const b2 = getTimeBadge(j.time2); html += `<th>${b1} ${j.time1}<br>x<br>${b2} ${j.time2}</th>`; });
             html += '</tr></thead><tbody>';
-            todosParticipantes.forEach(p => {
+            
+            participantesOrdenados.forEach(p => {
                 if (!p.palpites) return;
                 p.palpites.forEach((palpite, idx) => {
-                    html += `<tr><td><strong>${p.nome}</strong></td><td>#${idx+1}</td>`;
-                    jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}</td>`; });
+                    html += `<tr>
+                                <td><strong>${p.nome}</strong>NonNull
+                                <td>#${idx+1}NonNull`;
+                    jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}NonNull`; });
                     html += '</tr>';
                 });
             });
