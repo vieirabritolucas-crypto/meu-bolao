@@ -161,7 +161,6 @@
         let senhaAdmin = "082602";
         let acumuladoAtual = 0;
         
-        // Listeners
         db.ref('config/senha').on('value', (snap) => { if (snap.val()) senhaAdmin = snap.val(); });
         db.ref('jogos').on('value', (snap) => { jogos = snap.val() ? Object.values(snap.val()) : []; mostrarJogos(); mostrarResultados(); mostrarTabelaPalpites(); });
         db.ref('participantes').on('value', (snap) => { participantes = snap.val() ? Object.values(snap.val()) : []; mostrarPagamentos(); mostrarTabelaPalpites(); });
@@ -261,7 +260,6 @@
         function finalizarRodada() {
             if(!confirm('⚠️ Finalizar rodada vai zerar todos os palpites e verificar quem fez 20+ pontos. Continuar?')) return;
             
-            // Calcular quem fez 20+ pontos
             const pagantes = participantes.filter(p => p.pago);
             const desempenho = [];
             pagantes.forEach(p => {
@@ -295,14 +293,11 @@
                 msg += vencedores.map(v => `${v.nome} (${v.pontos} pts)`).join('\n');
                 msg += `\n\n💰 Cada um receberá R$ ${premioIndividual.toFixed(2)}!`;
                 alert(msg);
-                
-                // Zerar acumulado após premiação
                 db.ref('config/acumulado').set(0);
             } else if(acumuladoAtual > 0) {
                 alert(`⚠️ Ninguém fez 20 pontos ou mais.\n💰 Prêmio acumulado de R$ ${acumuladoAtual.toFixed(2)} vai para a próxima rodada!`);
             }
             
-            // Zerar palpites e resultados para nova rodada
             participantes.forEach(p => { p.palpites = []; p.pagamentos = []; });
             jogos.forEach(j => { j.gols1 = null; j.gols2 = null; });
             
@@ -314,7 +309,6 @@
             mostrarResultados();
         }
         
-        // Função para excluir um palpite específico do jogador
         function excluirPalpite(celular, palpiteIdx) {
             if(!confirm(`⚠️ Tem certeza que quer excluir APENAS este palpite? Os outros palpites do jogador serão mantidos.`)) return;
             
@@ -322,7 +316,6 @@
             if(p && p.palpites && p.palpites[palpiteIdx]) {
                 p.palpites.splice(palpiteIdx, 1);
                 if(p.pagamentos) p.pagamentos.splice(palpiteIdx, 1);
-                
                 db.ref('participantes').set(participantes);
                 alert(`✅ Palpite #${palpiteIdx+1} do jogador ${p.nome} foi excluído!`);
                 mostrarPagamentos();
@@ -330,6 +323,7 @@
             }
         }
         
+        // PAGAMENTOS CORRIGIDO - ORDEM ALFABÉTICA
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             let totalPalpites = 0, totalPagos = 0;
@@ -344,7 +338,10 @@
             
             if(participantes.length === 0) { div.innerHTML = '<p>Nenhum participante cadastrado</p>'; return; }
             
-            participantes.forEach(p => {
+            // ORDENAR POR NOME (A-Z)
+            const participantesOrdenados = [...participantes].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            participantesOrdenados.forEach(p => {
                 let palpitesHtml = '';
                 if(p.palpites && p.palpites.length > 0) {
                     p.palpites.forEach((palpite, idx) => {
@@ -403,25 +400,35 @@
             mostrarTabelaPalpites();
         }
         
+        // TABELA DE PALPITES CORRIGIDA - ORDEM ALFABÉTICA
         function mostrarTabelaPalpites() {
             const container = document.getElementById('tabela-palpites-container');
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
+            
+            const participantesOrdenados = [...participantes].sort((a, b) => a.nome.localeCompare(b.nome));
+            
             let html = '<table class="tabela-palpites"><thead><tr><th>Jogador</th><th>Palpite</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
             html += '</tr></thead><tbody>';
             
-            if(participantes.length === 0) { html += '<tr><td colspan="3">Nenhum participante</td></tr>'; }
+            if(participantesOrdenados.length === 0) { html += '<tr><td colspan="3">Nenhum participante</td><tr>'; }
             else {
-                participantes.forEach(p => {
+                participantesOrdenados.forEach(p => {
                     if(p.palpites && p.palpites.length > 0) {
                         p.palpites.forEach((palpite, idx) => {
                             const pago = p.pagamentos && p.pagamentos[idx];
-                            html += `<tr><td>${p.nome}</td><td>#${idx+1}</td><td>${pago ? '✅' : '❌'}</td>`;
+                            html += `<tr>
+                                        <td>${p.nome}</td>
+                                        <td>#${idx+1}</td>
+                                        <td>${pago ? '✅' : '❌'}</td>`;
                             jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
                             html += '</tr>';
                         });
                     } else {
-                        html += `<tr><td>${p.nome}</td><td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td></tr>`;
+                        html += `<tr>
+                                    <td>${p.nome}</td>
+                                    <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td>
+                                 </tr>`;
                     }
                 });
             }
@@ -471,7 +478,7 @@
             else {
                 palpitesPagos.forEach((item, index) => {
                     if(index > 0) html += `<div class="page-break"></div>`;
-                    html += `<h2>${item.nome} - Palpite #${item.palpiteNum}</h2><table><thead><tr><th>Time Casa</th><th>Gols Casa</th><th></th><th>Gols Visitante</th><th>Time Visitante</th></tr></thead><tbody>`;
+                    html += `<h2>${item.nome} - Palpite #${item.palpiteNum}</h2><td><thead><tr><th>Time Casa</th><th>Gols Casa</th><th></th><th>Gols Visitante</th><th>Time Visitante</th></tr></thead><tbody>`;
                     jogosOrdenados.forEach(jogo => {
                         const palpiteJogo = item.palpite.palpites?.find(pp => pp.jogoId === jogo.id);
                         const golsCasa = palpiteJogo ? palpiteJogo.gols1 : '---';
