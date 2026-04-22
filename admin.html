@@ -323,7 +323,6 @@
             }
         }
         
-        // PAGAMENTOS CORRIGIDO - ORDEM ALFABÉTICA
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             let totalPalpites = 0, totalPagos = 0;
@@ -338,7 +337,6 @@
             
             if(participantes.length === 0) { div.innerHTML = '<p>Nenhum participante cadastrado</p>'; return; }
             
-            // ORDENAR POR NOME (A-Z)
             const participantesOrdenados = [...participantes].sort((a, b) => a.nome.localeCompare(b.nome));
             
             participantesOrdenados.forEach(p => {
@@ -400,18 +398,16 @@
             mostrarTabelaPalpites();
         }
         
-        // TABELA DE PALPITES CORRIGIDA - ORDEM ALFABÉTICA
         function mostrarTabelaPalpites() {
             const container = document.getElementById('tabela-palpites-container');
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
-            
             const participantesOrdenados = [...participantes].sort((a, b) => a.nome.localeCompare(b.nome));
             
             let html = '<table class="tabela-palpites"><thead><tr><th>Jogador</th><th>Palpite</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
             html += '</tr></thead><tbody>';
             
-            if(participantesOrdenados.length === 0) { html += '<tr><td colspan="3">Nenhum participante</td><tr>'; }
+            if(participantesOrdenados.length === 0) { html += '<tr><td colspan="3">Nenhum participante</td><\/tr>'; }
             else {
                 participantesOrdenados.forEach(p => {
                     if(p.palpites && p.palpites.length > 0) {
@@ -422,17 +418,17 @@
                                         <td>#${idx+1}</td>
                                         <td>${pago ? '✅' : '❌'}</td>`;
                             jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
-                            html += '</tr>';
+                            html += `<\/tr>`;
                         });
                     } else {
                         html += `<tr>
                                     <td>${p.nome}</td>
                                     <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td>
-                                 </tr>`;
+                                  <\/tr>`;
                     }
                 });
             }
-            html += '</tbody></table>';
+            html += `<\/tbody><\/table>`;
             container.innerHTML = html;
         }
         
@@ -461,38 +457,145 @@
             alert('✅ CSV exportado!');
         }
         
+        // PDF CORRIGIDO - TABELA OK
         function exportarPDF() {
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
             let palpitesPagos = [];
+            
             participantes.forEach(p => {
                 if(p.palpites && p.pagamentos) {
                     p.palpites.forEach((palpite, idx) => {
                         if(p.pagamentos[idx] === true) {
-                            palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, palpite: palpite });
+                            palpitesPagos.push({ 
+                                nome: p.nome, 
+                                palpiteNum: idx + 1, 
+                                palpite: palpite 
+                            });
                         }
                     });
                 }
             });
-            let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Palpites - Meu Bolão</title><style>body{font-family:Arial;margin:20px;}h2{margin:20px 0 10px;}table{width:100%;border-collapse:collapse;margin-bottom:30px;}th,td{border:1px solid #000;padding:8px;text-align:center;}th{background:#f0f0f0;}.page-break{page-break-before:always;}</style></head><body>`;
-            if(palpitesPagos.length === 0) html += '<p>Nenhum palpite pago confirmado.</p>';
-            else {
-                palpitesPagos.forEach((item, index) => {
-                    if(index > 0) html += `<div class="page-break"></div>`;
-                    html += `<h2>${item.nome} - Palpite #${item.palpiteNum}</h2><td><thead><tr><th>Time Casa</th><th>Gols Casa</th><th></th><th>Gols Visitante</th><th>Time Visitante</th></tr></thead><tbody>`;
-                    jogosOrdenados.forEach(jogo => {
-                        const palpiteJogo = item.palpite.palpites?.find(pp => pp.jogoId === jogo.id);
-                        const golsCasa = palpiteJogo ? palpiteJogo.gols1 : '---';
-                        const golsVisitante = palpiteJogo ? palpiteJogo.gols2 : '---';
-                        html += `<tr><td style="text-align:left">${jogo.time1}</td><td>${golsCasa}</td><td>x</td><td>${golsVisitante}</td><td style="text-align:left">${jogo.time2}</td></tr>`;
-                    });
-                    html += `</tbody></table>`;
-                });
+            
+            if(palpitesPagos.length === 0) {
+                alert('Nenhum palpite pago para exportar!');
+                return;
             }
+            
+            let html = `<!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Palpites - Meu Bolão</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        margin: 0; 
+                        padding: 20px;
+                        background: white;
+                    }
+                    .pagina {
+                        page-break-after: always;
+                        margin-bottom: 30px;
+                    }
+                    .pagina:last-child {
+                        page-break-after: auto;
+                    }
+                    h2 {
+                        margin: 0 0 15px 0;
+                        font-size: 18px;
+                        color: #333;
+                        text-align: center;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 0 auto;
+                        font-size: 12px;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 10px 8px;
+                        text-align: center;
+                        vertical-align: middle;
+                    }
+                    th {
+                        background: #667eea;
+                        color: white;
+                        font-weight: bold;
+                    }
+                    .time-casa {
+                        text-align: left;
+                        font-weight: 500;
+                    }
+                    .time-visitante {
+                        text-align: left;
+                        font-weight: 500;
+                    }
+                    .gols {
+                        font-weight: bold;
+                        width: 50px;
+                    }
+                    .x {
+                        width: 30px;
+                        font-weight: bold;
+                    }
+                    footer {
+                        text-align: center;
+                        font-size: 10px;
+                        color: #999;
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>`;
+            
+            palpitesPagos.forEach((item, index) => {
+                if(index > 0) html += `<div class="pagina">`;
+                else html += `<div class="pagina">`;
+                
+                html += `<h2>${item.nome} - Palpite #${item.palpiteNum}</h2>`;
+                html += `<table>
+                            <thead>
+                                <tr>
+                                    <th style="width:35%">Time Casa</th>
+                                    <th style="width:15%">Gols</th>
+                                    <th style="width:5%"></th>
+                                    <th style="width:15%">Gols</th>
+                                    <th style="width:30%">Time Visitante</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                jogosOrdenados.forEach(jogo => {
+                    const palpiteJogo = item.palpite.palpites?.find(pp => pp && pp.jogoId === jogo.id);
+                    const golsCasa = (palpiteJogo && palpiteJogo.gols1 !== undefined && palpiteJogo.gols1 !== null) ? palpiteJogo.gols1 : '---';
+                    const golsVisitante = (palpiteJogo && palpiteJogo.gols2 !== undefined && palpiteJogo.gols2 !== null) ? palpiteJogo.gols2 : '---';
+                    
+                    html += `<tr>
+                                <td class="time-casa">${jogo.time1 || '?'}</td>
+                                <td class="gols">${golsCasa}</td>
+                                <td class="x">x</td>
+                                <td class="gols">${golsVisitante}</td>
+                                <td class="time-visitante">${jogo.time2 || '?'}</td>
+                              </tr>`;
+                });
+                
+                html += `</tbody>
+                         </table>`;
+                html += `<footer>Gerado por Meu Bolão - ${new Date().toLocaleString('pt-BR')}</footer>`;
+                html += `</div>`;
+            });
+            
             html += `</body></html>`;
+            
             const janela = window.open('', '_blank');
-            janela.document.write(html);
-            janela.document.close();
-            janela.print();
+            if(janela) {
+                janela.document.write(html);
+                janela.document.close();
+                janela.print();
+            } else {
+                alert('Por favor, permita pop-ups para este site');
+            }
         }
         
         function salvarConfig() {
