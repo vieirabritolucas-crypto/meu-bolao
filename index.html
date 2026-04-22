@@ -138,12 +138,12 @@
                                 </tr>
                             </thead>
                             <tbody id="ranking-body">
-                                <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
+                            <\/tbody>
+                        <\/table>
+                    <\/div>
+                <\/div>
+            <\/div>
             
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
@@ -401,6 +401,7 @@
             return { total, p3, p1 };
         }
         
+        // RANKING CORRIGIDO - SEM O TEXTO "EMPATADO"
         function atualizarRanking() {
             const palpitesPagos = [];
             todosParticipantes.forEach(p => {
@@ -426,7 +427,7 @@
             
             const tbody = document.getElementById('ranking-body');
             if (palpitesPagos.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago<\/td><\/tr>'; 
                 return; 
             }
             
@@ -442,16 +443,15 @@
                 pontosAnterior = item.total;
                 
                 const isLider = posicao === 1;
-                const isEmpate = i > 0 && item.total === palpitesPagos[i-1].total;
                 
                 return `<tr ${isLider ? 'class="primeiro"' : ''}>
-                            <td><strong>${posicao}º</strong></td>
-                            <td>${item.nome}${isEmpate ? ' (empatado)' : ''}</td>
-                            <td>#${item.palpiteNum}</td>
-                            <td>${item.p3}</td>
-                            <td>${item.p1}</td>
-                            <td><strong>${item.total}</strong></td>
-                         </tr>`;
+                             <td><strong>${posicao}º<\/strong><\/td>
+                             <td>${item.nome}<\/td>
+                             <td>#${item.palpiteNum}<\/td>
+                             <td>${item.p3}<\/td>
+                             <td>${item.p1}<\/td>
+                             <td><strong>${item.total}<\/strong><\/td>
+                          <\/tr>`;
             }).join('');
             
             if (usuarioAtual && usuarioAtual.pagamentos) { 
@@ -470,19 +470,19 @@
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
             jogosOrdenados.forEach(j => { const b1 = getTimeBadge(j.time1); const b2 = getTimeBadge(j.time2); html += `<th>${b1} ${j.time1}<br>x<br>${b2} ${j.time2}</th>`; });
-            html += '</tr></thead><tbody>';
+            html += '<\/tr><\/thead><tbody>';
             
             participantesOrdenados.forEach(p => {
                 if (!p.palpites) return;
                 p.palpites.forEach((palpite, idx) => {
                     html += `<tr>
-                                <td><strong>${p.nome}</strong></td>
-                                <td>#${idx+1}</td>`;
-                    jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}</td>`; });
-                    html += '</tr>';
+                                 <td><strong>${p.nome}<\/strong><\/td>
+                                 <td>#${idx+1}<\/td>`;
+                    jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}<\/td>`; });
+                    html += '<\/tr>';
                 });
             });
-            html += '</tbody></table></div>';
+            html += '<\/tbody><\/table><\/div>';
             container.innerHTML = html;
         }
         
