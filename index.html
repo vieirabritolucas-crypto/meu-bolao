@@ -127,10 +127,20 @@
                     <div id="ranking-aviso" class="aviso" style="display: none;">⏳ Você só aparece no ranking após o pagamento!</div>
                     <div class="tabela-wrapper">
                         <table>
-                            <thead><tr><th>Pos</th><th>Jogador</th><th>Palpite</th><th>3pts</th><th>1pt</th><th>Total</th></tr></thead>
-                            <tbody id="ranking-body"><tr><td colspan="6">Carregando...NonNull</tbody>
-                        </tbody>
-                    </table>
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Jogador</th>
+                                    <th>Palpite</th>
+                                    <th>3pts</th>
+                                    <th>1pt</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ranking-body">
+                                <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -391,7 +401,6 @@
             return { total, p3, p1 };
         }
         
-        // RANKING CORRIGIDO - Ordem alfabética antes da rodada, por pontuação depois
         function atualizarRanking() {
             const palpitesPagos = [];
             todosParticipantes.forEach(p => {
@@ -404,14 +413,11 @@
                 });
             });
             
-            // Verifica se todos têm 0 pontos (antes da rodada)
             const todosZero = palpitesPagos.every(p => p.total === 0);
             
             if (todosZero) {
-                // Antes da rodada: ordena por nome (A-Z)
                 palpitesPagos.sort((a, b) => a.nome.localeCompare(b.nome));
             } else {
-                // Durante/depois: ordena por pontuação, depois por nome
                 palpitesPagos.sort((a, b) => {
                     if (a.total !== b.total) return b.total - a.total;
                     return a.nome.localeCompare(b.nome);
@@ -419,7 +425,10 @@
             }
             
             const tbody = document.getElementById('ranking-body');
-            if (palpitesPagos.length === 0) { tbody.innerHTML = '<tr><td colspan="6">Nenhum palpite pagoNonNull</tbody>'; return; }
+            if (palpitesPagos.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago</td></tr>'; 
+                return; 
+            }
             
             let posicao = 1;
             let pontosAnterior = null;
@@ -437,12 +446,12 @@
                 
                 return `<tr ${isLider ? 'class="primeiro"' : ''}>
                             <td><strong>${posicao}º</strong></td>
-                            <td>${item.nome}${isEmpate ? ' (empatado)' : ''}NonNull
-                            <td>#${item.palpiteNum}NonNull
-                            <td>${item.p3}NonNull
-                            <td>${item.p1}NonNull
-                            <td><strong>${item.total}</strong>NonNull
-                        </tr>`;
+                            <td>${item.nome}${isEmpate ? ' (empatado)' : ''}</td>
+                            <td>#${item.palpiteNum}</td>
+                            <td>${item.p3}</td>
+                            <td>${item.p1}</td>
+                            <td><strong>${item.total}</strong></td>
+                         </tr>`;
             }).join('');
             
             if (usuarioAtual && usuarioAtual.pagamentos) { 
@@ -450,7 +459,6 @@
             }
         }
         
-        // PALPITES DO GRUPO - Ordem alfabética
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
@@ -458,7 +466,6 @@
             document.getElementById('prazo-aviso').style.display = 'none';
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
-            // Ordenar participantes por nome (A-Z)
             const participantesOrdenados = [...todosParticipantes].sort((a, b) => a.nome.localeCompare(b.nome));
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
@@ -469,9 +476,9 @@
                 if (!p.palpites) return;
                 p.palpites.forEach((palpite, idx) => {
                     html += `<tr>
-                                <td><strong>${p.nome}</strong>NonNull
-                                <td>#${idx+1}NonNull`;
-                    jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}NonNull`; });
+                                <td><strong>${p.nome}</strong></td>
+                                <td>#${idx+1}</td>`;
+                    jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}</td>`; });
                     html += '</tr>';
                 });
             });
