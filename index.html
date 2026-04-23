@@ -401,7 +401,6 @@
             return { total, p3, p1 };
         }
         
-        // RANKING CORRIGIDO - SEM O TEXTO "EMPATADO"
         function atualizarRanking() {
             const palpitesPagos = [];
             todosParticipantes.forEach(p => {
@@ -462,7 +461,11 @@
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
-            if (!prazoExpirado()) { document.getElementById('prazo-aviso').style.display = 'block'; container.innerHTML = ''; return; }
+            if (!prazoExpirado()) { 
+                document.getElementById('prazo-aviso').style.display = 'block'; 
+                container.innerHTML = ''; 
+                return; 
+            }
             document.getElementById('prazo-aviso').style.display = 'none';
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
             
@@ -486,11 +489,29 @@
             container.innerHTML = html;
         }
         
+        // FUNÇÃO MUDAR ABA CORRIGIDA
         function mudarAba(aba, event) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
-            document.querySelectorAll('.conteudo').forEach(c => c.classList.remove('ativo'));
-            if (event && event.target) event.target.classList.add('ativo');
-            document.getElementById(`aba-${aba}`).classList.add('ativo');
+            // Esconde todos os conteúdos
+            const abaPalpites = document.getElementById('aba-palpites');
+            const abaRanking = document.getElementById('aba-ranking');
+            const abaGrupo = document.getElementById('aba-grupo');
+            
+            if (abaPalpites) abaPalpites.classList.remove('ativo');
+            if (abaRanking) abaRanking.classList.remove('ativo');
+            if (abaGrupo) abaGrupo.classList.remove('ativo');
+            
+            // Mostra o conteúdo selecionado
+            const abaAtiva = document.getElementById(`aba-${aba}`);
+            if (abaAtiva) abaAtiva.classList.add('ativo');
+            
+            // Atualiza o estilo das abas
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('ativo'));
+            if (event && event.target) {
+                event.target.classList.add('ativo');
+            }
+            
+            // Atualiza ranking e grupo se necessário
             if (aba === 'ranking') atualizarRanking();
             if (aba === 'grupo') mostrarPalpitesGrupo();
         }
