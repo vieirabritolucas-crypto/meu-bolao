@@ -461,21 +461,9 @@
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) {
-                console.log("Container não encontrado, criando...");
-                const abaGrupo = document.getElementById('aba-grupo');
-                if (abaGrupo) {
-                    const card = abaGrupo.querySelector('.card');
-                    if (card) {
-                        const novoContainer = document.createElement('div');
-                        novoContainer.id = 'palpites-grupo-container';
-                        card.appendChild(novoContainer);
-                        container = novoContainer;
-                        console.log("Container criado com sucesso!");
-                    }
-                }
+                console.log("Container não encontrado");
+                return;
             }
-            if (!container) return;
-            
             if (!prazoExpirado()) { 
                 document.getElementById('prazo-aviso').style.display = 'block'; 
                 container.innerHTML = ''; 
@@ -504,9 +492,7 @@
             container.innerHTML = html;
         }
         
-        // FUNÇÃO MUDAR ABA CORRIGIDA
         function mudarAba(aba, event) {
-            // Esconde todos os conteúdos
             const abaPalpites = document.getElementById('aba-palpites');
             const abaRanking = document.getElementById('aba-ranking');
             const abaGrupo = document.getElementById('aba-grupo');
@@ -515,55 +501,17 @@
             if (abaRanking) abaRanking.classList.remove('ativo');
             if (abaGrupo) abaGrupo.classList.remove('ativo');
             
-            // Mostra o conteúdo selecionado
             const abaAtiva = document.getElementById(`aba-${aba}`);
             if (abaAtiva) abaAtiva.classList.add('ativo');
             
-            // Atualiza o estilo das abas
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(tab => tab.classList.remove('ativo'));
             if (event && event.target) {
                 event.target.classList.add('ativo');
             }
             
-            // Atualiza ranking e grupo se necessário
             if (aba === 'ranking') atualizarRanking();
             if (aba === 'grupo') mostrarPalpitesGrupo();
         }
         
-        function mostrarModalPix() {
-            if (!usuarioAtual) return;
-            const pendentes = usuarioAtual.pagamentos?.filter(p => p === false).length || 0;
-            if (pendentes === 0) { alert('Todos os palpites já estão pagos!'); return; }
-            document.getElementById('modal-qtd-palpites').textContent = pendentes;
-            document.getElementById('modal-valor-total').innerHTML = `R$ ${(pendentes * config.valorAposta).toFixed(2)}`;
-            document.getElementById('modalPix').style.display = 'flex';
-        }
-        
-        function fecharModal() { document.getElementById('modalPix').style.display = 'none'; }
-        function copiarChavePix() { navigator.clipboard.writeText(chavePix); alert('✅ Chave PIX copiada!'); }
-        
-        function restaurarSessao() {
-            const celular = localStorage.getItem('userCelular');
-            if (celular) {
-                usuarioAtual = todosParticipantes.find(p => p && p.celular === celular);
-                if (usuarioAtual) {
-                    document.getElementById('login').style.display = 'none';
-                    document.getElementById('painel').style.display = 'block';
-                    document.getElementById('btnSair').style.display = 'inline-block';
-                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
-                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
-                    if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
-                    else palpiteSelecionado = 0;
-                    mostrarJogos();
-                    atualizarListaPalpites();
-                    atualizarRanking();
-                    mostrarPalpitesGrupo();
-                    atualizarStatusPagamento();
-                }
-            }
-        }
-        restaurarSessao();
-    </script>
-</body>
-</html>
+        function mostrarModalPix
