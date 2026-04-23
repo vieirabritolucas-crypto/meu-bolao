@@ -460,7 +460,22 @@
         
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
+            if (!container) {
+                console.log("Container não encontrado, criando...");
+                const abaGrupo = document.getElementById('aba-grupo');
+                if (abaGrupo) {
+                    const card = abaGrupo.querySelector('.card');
+                    if (card) {
+                        const novoContainer = document.createElement('div');
+                        novoContainer.id = 'palpites-grupo-container';
+                        card.appendChild(novoContainer);
+                        container = novoContainer;
+                        console.log("Container criado com sucesso!");
+                    }
+                }
+            }
             if (!container) return;
+            
             if (!prazoExpirado()) { 
                 document.getElementById('prazo-aviso').style.display = 'block'; 
                 container.innerHTML = ''; 
