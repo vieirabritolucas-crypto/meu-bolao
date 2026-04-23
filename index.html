@@ -514,4 +514,39 @@
             if (aba === 'grupo') mostrarPalpitesGrupo();
         }
         
-        function mostrarModalPix
+        function mostrarModalPix() {
+            if (!usuarioAtual) return;
+            const pendentes = usuarioAtual.pagamentos?.filter(p => p === false).length || 0;
+            if (pendentes === 0) { alert('Todos os palpites já estão pagos!'); return; }
+            document.getElementById('modal-qtd-palpites').textContent = pendentes;
+            document.getElementById('modal-valor-total').innerHTML = `R$ ${(pendentes * config.valorAposta).toFixed(2)}`;
+            document.getElementById('modalPix').style.display = 'flex';
+        }
+        
+        function fecharModal() { document.getElementById('modalPix').style.display = 'none'; }
+        function copiarChavePix() { navigator.clipboard.writeText(chavePix); alert('✅ Chave PIX copiada!'); }
+        
+        function restaurarSessao() {
+            const celular = localStorage.getItem('userCelular');
+            if (celular) {
+                usuarioAtual = todosParticipantes.find(p => p && p.celular === celular);
+                if (usuarioAtual) {
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('painel').style.display = 'block';
+                    document.getElementById('btnSair').style.display = 'inline-block';
+                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
+                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+                    if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
+                    else palpiteSelecionado = 0;
+                    mostrarJogos();
+                    atualizarListaPalpites();
+                    atualizarRanking();
+                    mostrarPalpitesGrupo();
+                    atualizarStatusPagamento();
+                }
+            }
+        }
+        restaurarSessao();
+    </script>
+</body>
+</html>
