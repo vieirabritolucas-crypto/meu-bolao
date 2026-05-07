@@ -407,7 +407,7 @@
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
             html += '</tr></thead><tbody>';
             
-            if(participantesOrdenados.length === 0) { html += '<tr><td colspan="3">Nenhum participante</td><\/tr>'; }
+            if(participantesOrdenados.length === 0) { html += '<td><td colspan="3">Nenhum participante</tr>'; }
             else {
                 participantesOrdenados.forEach(p => {
                     if(p.palpites && p.palpites.length > 0) {
@@ -418,17 +418,17 @@
                                         <td>#${idx+1}</td>
                                         <td>${pago ? '✅' : '❌'}</td>`;
                             jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
-                            html += `<\/tr>`;
+                            html += `</tr>`;
                         });
                     } else {
                         html += `<tr>
                                     <td>${p.nome}</td>
                                     <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td>
-                                  <\/tr>`;
+                                  </tr>`;
                     }
                 });
             }
-            html += `<\/tbody><\/table>`;
+            html += `</tbody></table>`;
             container.innerHTML = html;
         }
         
@@ -457,7 +457,7 @@
             alert('✅ CSV exportado!');
         }
         
-        // PDF CORRIGIDO - TABELA OK
+        // PDF CORRIGIDO - ORDEM ALFABÉTICA
         function exportarPDF() {
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
             let palpitesPagos = [];
@@ -480,6 +480,9 @@
                 alert('Nenhum palpite pago para exportar!');
                 return;
             }
+            
+            // ORDENAR POR NOME (A-Z)
+            palpitesPagos.sort((a, b) => a.nome.localeCompare(b.nome));
             
             let html = `<!DOCTYPE html>
             <html>
@@ -581,7 +584,7 @@
                 });
                 
                 html += `</tbody>
-                         </table>`;
+                          </table>`;
                 html += `<footer>Gerado por Meu Bolão - ${new Date().toLocaleString('pt-BR')}</footer>`;
                 html += `</div>`;
             });
