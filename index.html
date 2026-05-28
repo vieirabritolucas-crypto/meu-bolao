@@ -106,11 +106,13 @@
             <div id="aba-palpites" class="conteudo ativo">
                 <div class="card">
                     <h2>📊 Meus Palpites</h2>
+                    
                     <div id="acumulado-card" class="acumulado-card">
                         <div class="acumulado-label">🏆 PRÊMIO ACUMULADO</div>
                         <div class="acumulado-valor" id="acumulado-valor-jogador">R$ 0,00</div>
                         <div class="acumulado-label">para quem fizer 20 PONTOS OU MAIS na rodada!</div>
                     </div>
+                    
                     <div class="palpite-selector" id="lista-palpites-botoes"></div>
                     <div id="status-pagamento" class="status-pagamento">Carregando...</div>
                     <div id="prazo-info" class="aviso" style="background: #e8f4fd; color:#333;"></div>
@@ -124,15 +126,24 @@
                     <h2>🏆 Ranking</h2>
                     <div id="ranking-aviso" class="aviso" style="display: none;">⏳ Você só aparece no ranking após o pagamento!</div>
                     <div class="tabela-wrapper">
-                        <table>
+                        2€
                             <thead>
-                                <tr><th>Pos</th><th>Jogador</th><th>Palpite</th><th>3pts</th><th>1pt</th><th>Total</th></tr>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Jogador</th>
+                                    <th>Palpite</th>
+                                    <th>3pts</th>
+                                    <th>1pt</th>
+                                    <th>Total</th>
+                                </tr>
                             </thead>
-                            <tbody id="ranking-body"><tr><td colspan="6">Carregando...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                            <tbody id="ranking-body">
+                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
+                            <\/tbody>
+                        8\/table>
+                    <\/div>
+                <\/div>
+            <\/div>
             
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
@@ -140,9 +151,9 @@
                     <div id="prazo-aviso" class="aviso">🔒 Palpites visíveis após o prazo</div>
                     <div id="palpites-grupo-container"></div>
                 </div>
-            </div>
-        </div>
-    </div>
+            <\/div>
+        <\/div>
+    <\/div>
 
     <script>
         // Firebase Config
@@ -453,26 +464,63 @@
             });
             
             const todosZero = palpitesPagos.every(p => p.total === 0);
-            if (todosZero) palpitesPagos.sort((a, b) => a.nome.localeCompare(b.nome));
-            else palpitesPagos.sort((a, b) => { if (a.total !== b.total) return b.total - a.total; return a.nome.localeCompare(b.nome); });
+            if (todosZero) {
+                palpitesPagos.sort((a, b) => a.nome.localeCompare(b.nome));
+            } else {
+                palpitesPagos.sort((a, b) => {
+                    if (a.total !== b.total) return b.total - a.total;
+                    return a.nome.localeCompare(b.nome);
+                });
+            }
             
             const tbody = document.getElementById('ranking-body');
-            if (palpitesPagos.length === 0) { tbody.innerHTML = '.<td colspan="6">Nenhum palpite pago<.*?'; return; }
+            if (palpitesPagos.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago</td></tr>'; 
+                return; 
+            }
             
-            let posicao = 1, pontosAnterior = null, posicaoAtual = 1;
-            tbody.innerHTML = palpitesPagos.map((item, i) => {
-                if (item.total !== pontosAnterior) posicaoAtual = i + 1;
+            let posicao = 1;
+            let pontosAnterior = null;
+            let posicaoAtual = 1;
+            
+            let html = '';
+            for (let i = 0; i < palpitesPagos.length; i++) {
+                const item = palpitesPagos[i];
+                
+                if (item.total !== pontosAnterior) {
+                    posicaoAtual = i + 1;
+                }
                 posicao = posicaoAtual;
                 pontosAnterior = item.total;
-                return `<tr ${posicao === 1 ? 'class="primeiro"' : ''}><td><strong>${posicao}º</strong><.><td>${item.nome}<.><td>#${item.palpiteNum}<.><td>${item.p3}<.><td>${item.p1}<.><td><strong>${item.total}</strong><.></tr>`;
-            }).join('');
-            if (usuarioAtual && usuarioAtual.pagamentos) document.getElementById('ranking-aviso').style.display = usuarioAtual.pagamentos.some(p => p === false) ? 'block' : 'none';
+                
+                const isLider = (posicao === 1);
+                const rowClass = isLider ? 'class="primeiro"' : '';
+                
+                html += `<tr ${rowClass}>
+                             <td><strong>${posicao}º</strong></td>
+                             <td>${item.nome}</td>
+                             <td>#${item.palpiteNum}</td>
+                             <td>${item.p3}</td>
+                             <td>${item.p1}</td>
+                             <td><strong>${item.total}</strong></td>
+                          </tr>`;
+            }
+            
+            tbody.innerHTML = html;
+            
+            if (usuarioAtual && usuarioAtual.pagamentos) { 
+                document.getElementById('ranking-aviso').style.display = usuarioAtual.pagamentos.some(p => p === false) ? 'block' : 'none'; 
+            }
         }
         
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
-            if (!prazoExpirado()) { document.getElementById('prazo-aviso').style.display = 'block'; container.innerHTML = ''; return; }
+            if (!prazoExpirado()) { 
+                document.getElementById('prazo-aviso').style.display = 'block'; 
+                container.innerHTML = ''; 
+                return; 
+            }
             document.getElementById('prazo-aviso').style.display = 'none';
             
             const jogosOrd = [...todosJogos].sort((a,b)=>(a.id||0)-(b.id||0));
@@ -488,35 +536,63 @@
                 return '#f8d7da';
             }
             
-            let html = '<div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>Jogador</th><th>Palpite</th>';
-            jogosOrd.forEach(j => { const b1=getTimeBadge(j.time1), b2=getTimeBadge(j.time2); html += `<th>${b1} ${j.time1}<br>vs<br>${b2} ${j.time2}<br><span style="font-size:10px">${j.gols1!==null?j.gols1+' x '+j.gols2:'--:--'}</span></th>`; });
+            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
+            html += '<thead><tr><th>Jogador</th><th>Palpite</th>';
+            jogosOrd.forEach(j => { 
+                const b1 = getTimeBadge(j.time1); 
+                const b2 = getTimeBadge(j.time2); 
+                const resultado = (j.gols1 !== null && j.gols2 !== null) ? `${j.gols1} x ${j.gols2}` : '--:--';
+                html += `<th style="min-width:80px;">${b1} ${j.time1}<br>vs<br>${b2} ${j.time2}<br><span style="font-size:10px; color:#666;">${resultado}</span></th>`; 
+            });
             html += '</tr></thead><tbody>';
             
             participantesOrd.forEach(p => {
                 if (!p.palpites) return;
                 p.palpites.forEach((palpite, idx) => {
-                    html += `<tr><td style="background:#f0f0f0">${p.nome}</td><td style="background:#f0f0f0">#${idx+1}</td>`;
-                    jogosOrd.forEach(j => {
+                    html += `<tr style="border-bottom:1px solid #ddd;">`;
+                    html += `<td style="background:#f0f0f0; font-weight:bold;">${p.nome}</td>`;
+                    html += `<td style="background:#f0f0f0; text-align:center;">#${idx+1}</td>`;
+                    
+                    jogosOrd.forEach(j => { 
                         const pp = palpite.palpites?.find(pal=>pal?.jogoId===j.id);
                         const cor = getCor(pp, j);
                         const placar = pp ? `${pp.gols1} x ${pp.gols2}` : '---';
-                        html += `<td style="background:${cor}; text-align:center">${placar}</td>`;
+                        html += `<td style="background:${cor}; text-align:center; font-weight:500; padding:8px 4px;">${placar}</td>`;
                     });
                     html += '</tr>';
                 });
             });
-            html += '</tbody></tr></div>';
-            html += '<div style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:10px; font-size:11px; display:flex; gap:15px; flex-wrap:wrap;"><span><span style="display:inline-block; width:15px; height:15px; background:#d4edda;"></span> Acertou o placar (3pts)</span><span><span style="display:inline-block; width:15px; height:15px; background:#fff3cd;"></span> Acertou o resultado (1pt)</span><span><span style="display:inline-block; width:15px; height:15px; background:#f8d7da;"></span> Errou/não palpou</span><span><span style="display:inline-block; width:15px; height:15px; background:white; border:1px solid #ddd;"></span> Aguardando resultado</span></div>';
+            html += '</tbody></table></div>';
+            
+            // Legenda
+            html += `<div style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:10px; font-size:11px; display:flex; gap:15px; flex-wrap:wrap;">
+                        <span><span style="display:inline-block; width:15px; height:15px; background:#d4edda; border-radius:3px; border:1px solid #c3e6cb;"></span> Acertou o placar exato (3 pontos)</span>
+                        <span><span style="display:inline-block; width:15px; height:15px; background:#fff3cd; border-radius:3px; border:1px solid #ffeeba;"></span> Acertou o resultado (1 ponto)</span>
+                        <span><span style="display:inline-block; width:15px; height:15px; background:#f8d7da; border-radius:3px; border:1px solid #f5c6cb;"></span> Errou ou não palpou</span>
+                        <span><span style="display:inline-block; width:15px; height:15px; background:white; border:1px solid #ddd; border-radius:3px;"></span> Aguardando resultado</span>
+                     </div>`;
+            
             container.innerHTML = html;
         }
         
         function mudarAba(aba, event) {
-            document.getElementById('aba-palpites')?.classList.remove('ativo');
-            document.getElementById('aba-ranking')?.classList.remove('ativo');
-            document.getElementById('aba-grupo')?.classList.remove('ativo');
-            document.getElementById(`aba-${aba}`)?.classList.add('ativo');
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
-            if (event?.target) event.target.classList.add('ativo');
+            const abaPalpites = document.getElementById('aba-palpites');
+            const abaRanking = document.getElementById('aba-ranking');
+            const abaGrupo = document.getElementById('aba-grupo');
+            
+            if (abaPalpites) abaPalpites.classList.remove('ativo');
+            if (abaRanking) abaRanking.classList.remove('ativo');
+            if (abaGrupo) abaGrupo.classList.remove('ativo');
+            
+            const abaAtiva = document.getElementById(`aba-${aba}`);
+            if (abaAtiva) abaAtiva.classList.add('ativo');
+            
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('ativo'));
+            if (event && event.target) {
+                event.target.classList.add('ativo');
+            }
+            
             if (aba === 'ranking') atualizarRanking();
             if (aba === 'grupo') mostrarPalpitesGrupo();
         }
