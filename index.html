@@ -135,16 +135,15 @@
                                     <th>3pts</th>
                                     <th>1pt</th>
                                     <th>Total</th>
-                                    <th>Detalhes</th>
                                 </tr>
                             </thead>
                             <tbody id="ranking-body">
-                                <tr><td colspan="7" style="text-align: center;">Carregando...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
+                            <\/tbody>
+                        <\/table>
+                    <\/div>
+                <\/div>
+            <\/div>
             
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
@@ -152,9 +151,9 @@
                     <div id="prazo-aviso" class="aviso">🔒 Palpites visíveis após o prazo</div>
                     <div id="palpites-grupo-container"></div>
                 </div>
-            </div>
-        </div>
-    </div>
+            <\/div>
+        <\/div>
+    <\/div>
 
     <script>
         // ========== FUNÇÃO DE ESCUDOS ==========
@@ -409,12 +408,7 @@
                 p.palpites.forEach((palpite, idx) => {
                     if (p.pagamentos && p.pagamentos[idx]) {
                         const pontos = calcularPontosPalpite(palpite);
-                        palpitesPagos.push({ 
-                            nome: p.nome, 
-                            palpiteNum: idx + 1, 
-                            ...pontos,
-                            detalhes: pontos.p3 > 0 || pontos.p1 > 0 ? `🎯${pontos.p3} 👍${pontos.p1}` : ''
-                        });
+                        palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, ...pontos });
                     }
                 });
             });
@@ -432,7 +426,7 @@
             
             const tbody = document.getElementById('ranking-body');
             if (palpitesPagos.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum palpite pago</td><\/tr>'; 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago<\/td><\/tr>'; 
                 return; 
             }
             
@@ -450,13 +444,12 @@
                 const isLider = posicao === 1;
                 
                 return `<tr ${isLider ? 'class="primeiro"' : ''}>
-                              <td><strong>${posicao}º<\/strong><\/td>
-                              <td>${item.nome}<\/td>
-                              <td>#${item.palpiteNum}<\/td>
-                              <td>${item.p3}<\/td>
-                              <td>${item.p1}<\/td>
-                              <td><strong>${item.total}<\/strong><\/td>
-                              <td><span style="font-size: 11px; color: #666;">${item.detalhes || '-'}<\/span><\/td>
+                             <td><strong>${posicao}º<\/strong><\/td>
+                             <td>${item.nome}<\/td>
+                             <td>#${item.palpiteNum}<\/td>
+                             <td>${item.p3}<\/td>
+                             <td>${item.p1}<\/td>
+                             <td><strong>${item.total}<\/strong><\/td>
                           <\/tr>`;
             }).join('');
             
@@ -486,8 +479,8 @@
                 if (!p.palpites) return;
                 p.palpites.forEach((palpite, idx) => {
                     html += `<tr>
-                                  <td><strong>${p.nome}<\/strong><\/td>
-                                  <td>#${idx+1}<\/td>`;
+                                 <td><strong>${p.nome}<\/strong><\/td>
+                                 <td>#${idx+1}<\/td>`;
                     jogosOrdenados.forEach(j => { const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}<\/td>`; });
                     html += '<\/tr>';
                 });
