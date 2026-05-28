@@ -138,12 +138,12 @@
                                 </tr>
                             </thead>
                             <tbody id="ranking-body">
-                                <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
+                            <\/tbody>
+                        <\/table>
+                    <\/div>
+                <\/div>
+            <\/div>
             
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
@@ -151,9 +151,9 @@
                     <div id="prazo-aviso" class="aviso">🔒 Palpites visíveis após o prazo</div>
                     <div id="palpites-grupo-container"></div>
                 </div>
-            </div>
-        </div>
-    </div>
+            <\/div>
+        <\/div>
+    <\/div>
 
     <script>
         // Firebase Config
@@ -467,7 +467,7 @@
             
             const tbody = document.getElementById('ranking-body');
             if (palpitesPagos.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago<\/td><\/tr>'; 
                 return; 
             }
             
@@ -484,13 +484,13 @@
                 const isLider = posicao === 1;
                 
                 return `<tr ${isLider ? 'class="primeiro"' : ''}>
-                    <td><strong>${posicao}º</strong></td>
-                    <td>${item.nome}</td>
-                    <td>#${item.palpiteNum}</td>
-                    <td>${item.p3}</td>
-                    <td>${item.p1}</td>
-                    <td><strong>${item.total}</strong></td>
-                </tr>`;
+                             <td><strong>${posicao}º<\/strong><\/td>
+                             <td>${item.nome}<\/td>
+                             <td>#${item.palpiteNum}<\/td>
+                             <td>${item.p3}<\/td>
+                             <td>${item.p1}<\/td>
+                             <td><strong>${item.total}<\/strong><\/td>
+                          <\/tr>`;
             }).join('');
             
             if (usuarioAtual && usuarioAtual.pagamentos) { 
@@ -501,11 +501,13 @@
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
+            
             if (!prazoExpirado()) { 
                 document.getElementById('prazo-aviso').style.display = 'block'; 
                 container.innerHTML = ''; 
                 return; 
             }
+            
             document.getElementById('prazo-aviso').style.display = 'none';
             
             const jogosOrdenados = [...todosJogos].sort((a, b) => (a.id || 0) - (b.id || 0));
@@ -516,24 +518,71 @@
                 return;
             }
             
-            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
-            jogosOrdenados.forEach(j => { const b1 = getTimeBadge(j.time1); const b2 = getTimeBadge(j.time2); html += `<th>${b1} ${j.time1}<br>x<br>${b2} ${j.time2}</th>`; });
+            // Função para determinar a cor do palpite
+            function getCorPalpite(palpiteJogo, jogo) {
+                if (!jogo || jogo.gols1 === null || jogo.gols2 === null) {
+                    return '#ffffff'; // Jogo sem resultado - branco
+                }
+                
+                if (!palpiteJogo) {
+                    return '#f8d7da'; // Não palpou - vermelho claro
+                }
+                
+                const acertouExato = (palpiteJogo.gols1 === jogo.gols1 && palpiteJogo.gols2 === jogo.gols2);
+                if (acertouExato) {
+                    return '#d4edda'; // Acertou exato - verde
+                }
+                
+                const resJogo = jogo.gols1 > jogo.gols2 ? 1 : (jogo.gols2 > jogo.gols1 ? 2 : 0);
+                const resPalpite = palpiteJogo.gols1 > palpiteJogo.gols2 ? 1 : (palpiteJogo.gols2 > palpiteJogo.gols1 ? 2 : 0);
+                
+                if (resJogo === resPalpite) {
+                    return '#fff3cd'; // Acertou resultado - amarelo
+                }
+                
+                return '#f8d7da'; // Errou - vermelho claro
+            }
+            
+            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
+            html += '<thead><tr><th>Jogador</th><th>Palpite</th>';
+            
+            jogosOrdenados.forEach(j => { 
+                const b1 = getTimeBadge(j.time1); 
+                const b2 = getTimeBadge(j.time2); 
+                const resultado = (j.gols1 !== null && j.gols2 !== null) ? `${j.gols1} x ${j.gols2}` : '--:--';
+                html += `<th style="min-width:80px;">${b1} ${j.time1}<br>vs<br>${b2} ${j.time2}<br><span style="font-size:10px; color:#666;">${resultado}</span></th>`; 
+            });
             html += '</tr></thead><tbody>';
             
             participantesOrdenados.forEach(p => {
                 if (!p.palpites) return;
+                
                 p.palpites.forEach((palpite, idx) => {
-                    html += `<tr>
-                        <td><strong>${p.nome}</strong></td>
-                        <td>#${idx+1}</td>`;
+                    html += `<tr style="border-bottom:1px solid #ddd;">`;
+                    html += `<td style="background:#f0f0f0; font-weight:bold;">${p.nome}</td>`;
+                    html += `<td style="background:#f0f0f0; text-align:center;">#${idx+1}</td>`;
+                    
                     jogosOrdenados.forEach(j => { 
-                        const pp = palpite.palpites?.find(pal => pal && pal.jogoId === j.id); 
-                        html += `<td>${pp ? `${pp.gols1} x ${pp.gols2}` : '---'}</td>`; 
+                        const palpiteJogo = palpite.palpites?.find(pal => pal && pal.jogoId === j.id);
+                        const cor = getCorPalpite(palpiteJogo, j);
+                        const placar = palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---';
+                        
+                        html += `<td style="background:${cor}; text-align:center; font-weight:500; padding:8px 4px;">${placar}</td>`;
                     });
                     html += '</tr>';
                 });
             });
+            
             html += '</tbody></table></div>';
+            
+            // Legenda
+            html += `<div style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:10px; font-size:11px; display:flex; gap:15px; flex-wrap:wrap;">
+                        <span><span style="display:inline-block; width:15px; height:15px; background:#d4edda; border-radius:3px; border:1px solid #c3e6cb;"></span> Acertou o placar exato (3 pontos)</span>
+                        <span><span style="display:inline-block; width:15px; height:15px; background:#fff3cd; border-radius:3px; border:1px solid #ffeeba;"></span> Acertou o resultado (1 ponto)</span>
+                        <span><span style="display:inline-block; width:15px; height:15px; background:#f8d7da; border-radius:3px; border:1px solid #f5c6cb;"></span> Errou ou não palpou</span>
+                        <span><span style="display:inline-block; width:15px; height:15px; background:white; border:1px solid #ddd; border-radius:3px;"></span> Aguardando resultado</span>
+                     </div>`;
+            
             container.innerHTML = html;
         }
         
@@ -596,6 +645,6 @@
         }
         
         restaurarSessao();
-    </script>
-</body>
-</html>
+    <\/script>
+<\/body>
+<\/html>
