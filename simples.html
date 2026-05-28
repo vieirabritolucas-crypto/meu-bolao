@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Simples</title>
+</head>
+<body>
+    <h1>Meu Bolão - Teste</h1>
+    <p>Se você está vendo esta página, o site está no ar!</p>
+    <p>Agora vamos testar o Firebase...</p>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <div id="status">Testando conexão...</div>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
+            authDomain: "meu-bolao-7977f.firebaseapp.com",
+            databaseURL: "https://meu-bolao-7977f-default-rtdb.firebaseio.com",
+            projectId: "meu-bolao-7977f",
+            storageBucket: "meu-bolao-7977f.firebasestorage.app",
+            messagingSenderId: "766522730401",
+            appId: "1:766522730401:web:c056a8dedc130e6a5b0de0"
+        };
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+            document.getElementById('status').innerHTML = "✅ Firebase inicializado!";
+            
+            db.ref('jogos').once('value').then(snap => {
+                const qtd = snap.val() ? Object.keys(snap.val()).length : 0;
+                document.getElementById('status').innerHTML = `✅ Conectado! Jogos encontrados: ${qtd}`;
+            }).catch(err => {
+                document.getElementById('status').innerHTML = `❌ Erro: ${err.message}`;
+            });
+        } catch(e) {
+            document.getElementById('status').innerHTML = `❌ Erro: ${e.message}`;
+        }
+    </script>
+</body>
+</html>
