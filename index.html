@@ -126,7 +126,7 @@
                     <h2>🏆 Ranking</h2>
                     <div id="ranking-aviso" class="aviso" style="display: none;">⏳ Você só aparece no ranking após o pagamento!</div>
                     <div class="tabela-wrapper">
-                        <table>
+                        98
                             <thead>
                                 <tr>
                                     <th>Pos</th>
@@ -140,7 +140,7 @@
                             <tbody id="ranking-body">
                                 <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
                             <\/tbody>
-                        <\/table>
+                        8\/table>
                     <\/div>
                 <\/div>
             <\/div>
@@ -181,6 +181,8 @@
         }
         
         // ========== FIREBASE ==========
+        console.log("Iniciando Firebase...");
+        
         const firebaseConfig = {
             apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
             authDomain: "meu-bolao-7977f.firebaseapp.com",
@@ -191,8 +193,20 @@
             appId: "1:766522730401:web:c056a8dedc130e6a5b0de0"
         };
         
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // Inicializar Firebase
+        let db;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                console.log("Firebase inicializado com sucesso!");
+            } else {
+                console.log("Firebase já estava inicializado");
+            }
+            db = firebase.database();
+        } catch(e) {
+            console.error("Erro ao inicializar Firebase:", e);
+            document.getElementById('info-valor').innerHTML = "❌ Erro de conexão. Recarregue a página.";
+        }
         
         let usuarioAtual = null;
         let todosJogos = [];
@@ -202,37 +216,54 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = null;
         
-        db.ref('config/acumulado').on('value', (snap) => {
-            const acumulado = snap.val() || 0;
-            const acumuladoDiv = document.getElementById('acumulado-card');
-            const acumuladoValor = document.getElementById('acumulado-valor-jogador');
-            if (acumuladoDiv && acumuladoValor) {
-                if (acumulado > 0) {
-                    acumuladoDiv.style.display = 'block';
-                    acumuladoValor.innerHTML = `R$ ${acumulado.toFixed(2)}`;
+        // Verificar conexão e carregar dados
+        if (db) {
+            db.ref('.info/connected').on('value', (snap) => {
+                console.log("Conectado ao Firebase:", snap.val());
+                if (snap.val()) {
+                    document.getElementById('info-valor').innerHTML = "💰 Conectado!";
                 } else {
-                    acumuladoDiv.style.display = 'none';
+                    document.getElementById('info-valor').innerHTML = "⚠️ Sem conexão. Recarregue.";
                 }
-            }
-        });
+            });
+            
+            db.ref('config/acumulado').on('value', (snap) => {
+                const acumulado = snap.val() || 0;
+                const acumuladoDiv = document.getElementById('acumulado-card');
+                const acumuladoValor = document.getElementById('acumulado-valor-jogador');
+                if (acumuladoDiv && acumuladoValor) {
+                    if (acumulado > 0) {
+                        acumuladoDiv.style.display = 'block';
+                        acumuladoValor.innerHTML = `R$ ${acumulado.toFixed(2)}`;
+                    } else {
+                        acumuladoDiv.style.display = 'none';
+                    }
+                }
+            });
+            
+            db.ref('config/chave_pix').on('value', (snap) => { if (snap.val()) chavePix = snap.val(); document.getElementById('modal-chave-pix').textContent = chavePix; });
+            db.ref('jogos').on('value', (snap) => { todosJogos = snap.val() ? Object.values(snap.val()) : []; if (usuarioAtual) { mostrarJogos(); mostrarPalpitesGrupo(); atualizarRanking(); } });
+            db.ref('participantes').on('value', (snap) => {
+                todosParticipantes = snap.val() ? Object.values(snap.val()) : [];
+                if (usuarioAtual) {
+                    const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
+                    if (encontrado) usuarioAtual = encontrado;
+                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
+                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+                    atualizarListaPalpites();
+                    atualizarRanking();
+                    atualizarStatusPagamento();
+                    if (palpiteSelecionado === null && usuarioAtual.palpites.length > 0) { palpiteSelecionado = 0; mostrarJogos(); }
+                }
+            });
+            db.ref('prazo').on('value', (snap) => { prazoFinal = snap.val(); if (usuarioAtual) { mostrarJogos(); mostrarPalpitesGrupo(); } });
+            db.ref('config').on('value', (snap) => { const data = snap.val(); if (data) config.valorAposta = data.valorAposta || 10; document.getElementById('info-valor').innerHTML = `💰 Aposta: R$ ${config.valorAposta} por palpite`; });
+        } else {
+            console.error("Firebase não inicializado!");
+            document.getElementById('info-valor').innerHTML = "❌ Erro crítico. Contate o administrador.";
+        }
         
-        db.ref('config/chave_pix').on('value', (snap) => { if (snap.val()) chavePix = snap.val(); document.getElementById('modal-chave-pix').textContent = chavePix; });
-        db.ref('jogos').on('value', (snap) => { todosJogos = snap.val() ? Object.values(snap.val()) : []; if (usuarioAtual) { mostrarJogos(); mostrarPalpitesGrupo(); atualizarRanking(); } });
-        db.ref('participantes').on('value', (snap) => {
-            todosParticipantes = snap.val() ? Object.values(snap.val()) : [];
-            if (usuarioAtual) {
-                const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
-                if (encontrado) usuarioAtual = encontrado;
-                if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
-                if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
-                atualizarListaPalpites();
-                atualizarRanking();
-                atualizarStatusPagamento();
-                if (palpiteSelecionado === null && usuarioAtual.palpites.length > 0) { palpiteSelecionado = 0; mostrarJogos(); }
-            }
-        });
-        db.ref('prazo').on('value', (snap) => { prazoFinal = snap.val(); if (usuarioAtual) { mostrarJogos(); mostrarPalpitesGrupo(); } });
-        db.ref('config').on('value', (snap) => { const data = snap.val(); if (data) config.valorAposta = data.valorAposta || 10; document.getElementById('info-valor').innerHTML = `💰 Aposta: R$ ${config.valorAposta} por palpite`; });
+        console.log("Firebase configurado, aguardando dados...");
         
         function fazerLogin() {
             const nome = document.getElementById('nome').value.trim();
