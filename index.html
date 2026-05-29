@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Bolão</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #667eea; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 20px; padding: 20px; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; }
+        button { background: #27ae60; color: white; cursor: pointer; }
+        .tabs { display: flex; gap: 5px; margin: 15px 0; }
+        .tab { flex: 1; text-align: center; padding: 8px; background: #e0e0e0; border-radius: 10px; cursor: pointer; }
+        .tab.ativo { background: #667eea; color: white; }
+        .pagina { display: none; }
+        .pagina.ativa { display: block; }
+        .jogo { border-left: 3px solid #667eea; padding: 10px; margin: 10px 0; background: #f8f9fa; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ Meu Bolão</h1>
+        
+        <div id="loginDiv">
+            <input type="text" id="nome" placeholder="Seu nome">
+            <input type="text" id="celular" placeholder="WhatsApp">
+            <button onclick="login()">Entrar</button>
+            <div id="status">Conectando...</div>
+        </div>
+        
+        <div id="appDiv" style="display:none">
+            <button onclick="logout()" style="background:#dc3545">Sair</button>
+            <div class="tabs">
+                <div class="tab ativo" onclick="trocarAba('palpites')">Palpites</div>
+                <div class="tab" onclick="trocarAba('ranking')">Ranking</div>
+            </div>
+            <div id="abaPalpites" class="pagina ativa">
+                <div id="jogosLista">Carregando jogos...</div>
+                <button onclick="salvarPalpites()">Salvar Palpites</button>
+            </div>
+            <div id="abaRanking" class="pagina">
+                <div id="rankingLista">Carregando ranking...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNtc50Dxym-ZL9QW7q9V9yLrYezijq0ek",
+            authDomain: "meu-bolao-7977f.firebaseapp.com",
+            databaseURL: "https://meu-bolao-7977f-default-rtdb.firebaseio.com",
+            projectId: "meu-bolao-7977f",
+            storageBucket: "meu-bolao-7977f.firebasestorage.app",
+            messagingSenderId: "766522730401",
+            appId: "1:766522730401:web:c056a8dedc130e6a5b0de0"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        let usuario = null;
+        let jogos = [];
+        let participantes = [];
+        let prazo = null;
+        let palpiteSelecionado = 0;
+        
+        // INICIAR
+        document.getElementById('status').innerHTML = 'Pronto!';
+        
+        async function carregarDados() {
+            try {
+                const [jogosSnap, participantesSnap, prazoSnap] = await Promise.all([
+                    db.ref('jogos').once('value'),
+                    db.ref('participantes').once('value'),
+                    db.ref('prazo').once('value')
+                ]);
+                jogos = jogosSnap.val() ? Object.values(jogosSnap.val()) : [];
+                participantes = participantesSnap.val() ? Object.values(participantesSnap.val()) : [];
+                prazo = prazoSnap.val();
+                
+                if (usuario) {
+                    const encontrado = participantes.find(p => p.celular === usuario.celular);
+                    if (encontrado) usuario = encontrado;
+                    if (!usuario.palpites) usuario.palpites = [];
+                    if (!usuario.pagamentos) usuario.pagamentos = [];
+                    if (usuario.palpites.length === 0) usuario.palpites.push({ id: Date.now(), palpites: [] });
+                    mostrarJogos();
+                    mostrarRanking();
+                }
+            } catch(e) {
+                console.log("Erro:", e);
+                document.getElementById('status').innerHTML = 'Erro ao carregar';
+            }
+        }
+        
+        function prazoExpirado() {
+            return prazo ? new Date() > new Date(prazo) : false;
+        }
+        
+        async function login() {
+            const nome = document.getElementById('nome').value.trim();
+            const celular = document.getElementById('celular').value.trim();
+            if (!nome || !celular) { alert('Preencha os campos'); return; }
+            
+            let participante = participantes.find(p => p.celular === celular);
+            if (!participante) {
+                participante = { nome, celular, palpites: [{ id: Date.now(), palpites: [] }], pagamentos: [false] };
+                await db.ref('participantes').push(participante);
+            }
+            usuario = participante;
+            localStorage.setItem('userCelular', celular);
+            document.getElementById('loginDiv').style.display = 'none';
+            document.getElementById('appDiv').style.display = 'block';
+            await carregarDados();
+        }
+        
+        function logout() {
+            localStorage.removeItem('userCelular');
+            usuario = null;
+            document.getElementById('loginDiv').style.display = 'block';
+            document.getElementById('appDiv').style.display = 'none';
+        }
+        
+        function mostrarJogos() {
+            const div = document.getElementById('jogosLista');
+            if (!jogos.length) { div.innerHTML = '<p>Nenhum jogo</p>'; return; }
+            
+            const expirado = prazoExpirado();
+            const palpitesAtuais = usuario.palpites[palpiteSelecionado]?.palpites || [];
+            
+            let html = '';
+            jogos.forEach(j => {
+                const palpite = palpitesAtuais.find(p => p.jogoId === j.id);
+                const disabled = (j.gols1 !== null || expirado) ? 'disabled' : '';
+                html += `<div class="jogo">
+                            <strong>${j.time1} x ${j.time2}</strong> - ${j.data || ''}<br>
+                            ${j.gols1 !== null ? `<small>RESULTADO: ${j.gols1} x ${j.gols2}</small><br>` : ''}
+                            ${j.time1}: <input type="number" id="g1_${j.id}" value="${palpite?.gols1 || ''}" min="0" max="9" style="width:60px" ${disabled}>
+                            ${j.time2}: <input type="number" id="g2_${j.id}" value="${palpite?.gols2 || ''}" min="0" max="9" style="width:60px" ${disabled}>
+                         </div>`;
+            });
+            div.innerHTML = html;
+        }
+        
+        async function salvarPalpites() {
+            if (prazoExpirado()) { alert('Prazo encerrado!'); return; }
+            
+            const novosPalpites = [];
+            for (let j of jogos) {
+                const g1 = document.getElementById(`g1_${j.id}`).value;
+                const g2 = document.getElementById(`g2_${j.id}`).value;
+                if (g1 === '' || g2 === '') { alert('Preencha todos os jogos!'); return; }
+                novosPalpites.push({ jogoId: j.id, gols1: parseInt(g1), gols2: parseInt(g2) });
+            }
+            usuario.palpites[palpiteSelecionado].palpites = novosPalpites;
+            
+            // salvar no Firebase
+            const participantesSnap = await db.ref('participantes').once('value');
+            const data = participantesSnap.val();
+            for (let key in data) {
+                if (data[key].celular === usuario.celular) {
+                    await db.ref('participantes/' + key).set(usuario);
+                    break;
+                }
+            }
+            alert('Palpites salvos!');
+        }
+        
+        function mostrarRanking() {
+            const div = document.getElementById('rankingLista');
+            let palpitesPagos = [];
+            participantes.forEach(p => {
+                if (p.palpites && p.pagamentos) {
+                    p.palpites.forEach((palpite, idx) => {
+                        if (p.pagamentos[idx]) {
+                            let pontos = 0, p3 = 0, p1 = 0;
+                            palpite.palpites.forEach(pp => {
+                                const j = jogos.find(j => j.id === pp.jogoId);
+                                if (j && j.gols1 !== null) {
+                                    if (pp.gols1 === j.gols1 && pp.gols2 === j.gols2) { pontos += 3; p3++; }
+                                    else {
+                                        const resJ = j.gols1 > j.gols2 ? 1 : (j.gols2 > j.gols1 ? 2 : 0);
+                                        const resP = pp.gols1 > pp.gols2 ? 1 : (pp.gols2 > pp.gols1 ? 2 : 0);
+                                        if (resJ === resP) { pontos += 1; p1++; }
+                                    }
+                                }
+                            });
+                            palpitesPagos.push({ nome: p.nome, palpiteNum: idx+1, pontos, p3, p1 });
+                        }
+                    });
+                }
+            });
+            palpitesPagos.sort((a,b) => b.pontos - a.pontos);
+            if (palpitesPagos.length === 0) { div.innerHTML = '<p>Nenhum palpite pago</p>'; return; }
+            
+            let html = '<table style="width:100%"><tr><th>Pos</th><th>Jogador</th><th>Palpite</th><th>3pts</th><th>1pt</th><th>Total</th></tr>';
+            palpitesPagos.forEach((item, i) => {
+                html += `<tr><td>${i+1}º</td><td>${item.nome}</td><td>#${item.palpiteNum}</td><td>${item.p3}</td><td>${item.p1}</td><td><strong>${item.pontos}</strong></td></tr>`;
+            });
+            html += '</table>';
+            div.innerHTML = html;
+        }
+        
+        function trocarAba(aba) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+            document.querySelectorAll('.pagina').forEach(p => p.classList.remove('ativa'));
+            if (aba === 'palpites') {
+                document.querySelector('.tab:first-child').classList.add('ativo');
+                document.getElementById('abaPalpites').classList.add('ativa');
+                mostrarJogos();
+            } else {
+                document.querySelector('.tab:last-child').classList.add('ativo');
+                document.getElementById('abaRanking').classList.add('ativa');
+                mostrarRanking();
+            }
+        }
+        
+        // Verificar login salvo
+        const celularSalvo = localStorage.getItem('userCelular');
+        if (celularSalvo) {
+            db.ref('participantes').once('value').then(async snap => {
+                const lista = snap.val() ? Object.values(snap.val()) : [];
+                usuario = lista.find(p => p.celular === celularSalvo);
+                if (usuario) {
+                    document.getElementById('loginDiv').style.display = 'none';
+                    document.getElementById('appDiv').style.display = 'block';
+                    await carregarDados();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
