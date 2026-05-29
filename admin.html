@@ -34,7 +34,7 @@
         .btn-primary { background: #667eea; color: white; }
         .btn-acumulado { background: #e67e22; color: white; }
         .tabela-palpites { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; display: block; }
-        .tabela-palpites th, .tabela-palpites td { padding: 8px; border: 1px solid #ddd; text-align: center; vertical-align: middle; }
+        .tabela-palpites th, .tabela-palpites td { padding: 8px; border: 1px solid #ddd; text-align: center; }
         .tabela-palpites th { background: #667eea; color: white; }
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
@@ -43,9 +43,6 @@
         .acumulado-card { background: linear-gradient(135deg, #e67e22, #f39c12); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
         .acumulado-valor { font-size: 32px; font-weight: bold; }
         .acumulado-label { font-size: 12px; opacity: 0.9; }
-        .acerto-exato { background-color: #2ecc71; color: white; font-weight: bold; border-radius: 8px; padding: 4px 8px; display: inline-block; }
-        .acerto-resultado { background-color: #f39c12; color: white; font-weight: bold; border-radius: 8px; padding: 4px 8px; display: inline-block; }
-        .acerto-erro { background-color: #e74c3c; color: white; border-radius: 8px; padding: 4px 8px; display: inline-block; }
         @media (max-width: 768px) { .container { padding: 15px; } .jogo-item, .resultado-item { flex-direction: column; } }
     </style>
 </head>
@@ -182,9 +179,7 @@
             document.getElementById('acumulado-exibicao').innerHTML = `R$ ${acumuladoAtual.toFixed(2)}`;
         });
         
-        function abrirSiteJogador() { 
-            window.open('index.html', '_blank'); 
-        }
+        function abrirSiteJogador() { window.open('https://meu-bolao-teal.vercel.app/index.html', '_blank'); }
         
         function salvarAcumulado() {
             const valor = parseFloat(document.getElementById('acumulado-valor').value) || 0;
@@ -197,7 +192,6 @@
                 document.getElementById('login-admin').style.display = 'none';
                 document.getElementById('conteudo-admin').style.display = 'block';
                 sessionStorage.setItem('adminLogado', 'true');
-                document.getElementById('erro-senha').textContent = '';
             } else {
                 document.getElementById('erro-senha').textContent = 'Senha incorreta!';
             }
@@ -207,7 +201,6 @@
             sessionStorage.removeItem('adminLogado');
             document.getElementById('login-admin').style.display = 'block';
             document.getElementById('conteudo-admin').style.display = 'none';
-            document.getElementById('senha').value = '';
         }
         
         if (sessionStorage.getItem('adminLogado') === 'true') {
@@ -243,11 +236,7 @@
         function removerJogo(id) { jogos = jogos.filter(j => j.id !== id); db.ref('jogos').set(jogos); }
         
         function salvarJogos() {
-            jogos.forEach(j => { 
-                j.time1 = document.getElementById(`t1_${j.id}`).value; 
-                j.time2 = document.getElementById(`t2_${j.id}`).value; 
-                j.data = document.getElementById(`d_${j.id}`).value; 
-            });
+            jogos.forEach(j => { j.time1 = document.getElementById(`t1_${j.id}`).value; j.time2 = document.getElementById(`t2_${j.id}`).value; j.data = document.getElementById(`d_${j.id}`).value; });
             db.ref('jogos').set(jogos);
             db.ref('prazo').set(document.getElementById('prazo').value);
             alert('✅ Jogos salvos!');
@@ -255,23 +244,14 @@
         
         function mostrarResultados() {
             const div = document.getElementById('resultados-lista');
-            if(!div) return;
             div.innerHTML = '';
-            if(jogos.length === 0) { div.innerHTML = '<p style="text-align:center;">Nenhum jogo cadastrado</p>'; return; }
             jogos.forEach(j => {
                 div.innerHTML += `<div class="resultado-item"><strong style="width:180px">${j.time1} x ${j.time2}</strong><input type="number" id="r1_${j.id}" value="${j.gols1 !== null ? j.gols1 : ''}" placeholder="0" min="0" style="width:70px"><span>x</span><input type="number" id="r2_${j.id}" value="${j.gols2 !== null ? j.gols2 : ''}" placeholder="0" min="0" style="width:70px"></div>`;
             });
         }
         
         function salvarResultados() {
-            jogos.forEach(j => { 
-                const g1 = document.getElementById(`r1_${j.id}`).value; 
-                const g2 = document.getElementById(`r2_${j.id}`).value; 
-                if (g1 !== '' && g2 !== '') { 
-                    j.gols1 = parseInt(g1); 
-                    j.gols2 = parseInt(g2); 
-                } 
-            });
+            jogos.forEach(j => { const g1 = document.getElementById(`r1_${j.id}`).value; const g2 = document.getElementById(`r2_${j.id}`).value; if (g1 !== '' && g2 !== '') { j.gols1 = parseInt(g1); j.gols2 = parseInt(g2); } });
             db.ref('jogos').set(jogos);
             alert('✅ Resultados salvos!');
             mostrarTabelaPalpites();
@@ -321,7 +301,6 @@
                 alert('📊 Nenhum prêmio acumulado disponível para esta rodada.');
             }
             
-            // Reset para próxima rodada
             participantes.forEach(p => { 
                 p.palpites = []; 
                 p.pagamentos = []; 
@@ -451,17 +430,16 @@
             let html = '<table class="tabela-palpites"><thead><tr>';
             html += '<th>Jogador</th><th>Palpite</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
-            html += '<th>Acertos</th></tr></thead><tbody>';
+            html += '</tr></thead><tbody>';
             
             if(participantesOrdenados.length === 0) { 
-                html += '<tr><td colspan="3">Nenhum participante</td></tr>'; 
+                html += '<tr><td colspan="3">Nenhum participante<\/td><\/tr>'; 
             } else {
                 participantesOrdenados.forEach(p => {
                     if(p.palpites && p.palpites.length > 0) {
                         p.palpites.forEach((palpite, idx) => {
                             const pago = p.pagamentos && p.pagamentos[idx];
                             
-                            // CALCULAR ACERTOS DESTE PALPITE
                             let acertos3 = 0;
                             let acertos1 = 0;
                             
@@ -501,7 +479,7 @@
                                     exibicao = '---';
                                 }
                                 
-                                html += `<td style="text-align: center;">${exibicao}</td>`;
+                                html += `<td style="text-align: center;">${exibicao}<\/td>`;
                             });
                             
                             const totalAcertos = acertos3 + acertos1;
@@ -509,21 +487,21 @@
                             
                             let acertosHtml = '';
                             if (totalAcertos === 0) {
-                                acertosHtml = `<span style="color: #999;">0</span>`;
+                                acertosHtml = `<span style="color: #999;">0<\/span>`;
                             } else {
                                 acertosHtml = `<span style="font-weight: bold; background: #667eea; color: white; padding: 4px 8px; border-radius: 20px; display: inline-block;">
                                     🎯 ${acertos3} | 👍 ${acertos1}<br>🏆 ${pontosTotais}pts
-                                </span>`;
+                                <\/span>`;
                             }
                             
-                            html += `<td style="text-align: center;">${acertosHtml}</td>`;
+                            html += `<td style="text-align: center;">${acertosHtml}<\/td>`;
                             html += `</tr>`;
                         });
                     } else {
                         html += `<tr>
                                     <td>${p.nome}</td>
-                                    <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite</td>
-                                  </tr>`;
+                                    <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite<\/td>
+                                  </td>`;
                     }
                 });
             }
@@ -542,7 +520,6 @@
                     p.palpites.forEach((palpite, idx) => {
                         const pago = p.pagamentos && p.pagamentos[idx];
                         
-                        // Calcular acertos para o CSV
                         let acertos3 = 0;
                         let acertos1 = 0;
                         
@@ -642,7 +619,7 @@
             palpitesPagos.forEach((item, index) => {
                 html += `<div class="pagina">`;
                 html += `<h2>${item.nome} - Palpite #${item.palpiteNum}</h2>`;
-                html += `<table>
+                html += `<td>
                             <thead>
                                 <tr>
                                     <th style="width:35%">Time Casa</th>
@@ -694,7 +671,7 @@
                 });
                 
                 html += `</tbody>
-                          </table>`;
+                         </table>`;
                 html += `<footer>Gerado por Meu Bolão - ${new Date().toLocaleString('pt-BR')}</footer>`;
                 html += `</div>`;
             });
