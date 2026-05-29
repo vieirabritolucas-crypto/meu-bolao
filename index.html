@@ -124,7 +124,7 @@
                     <h2>Ranking</h2>
                     <div id="ranking-aviso" class="aviso" style="display: none;">Você só aparece no ranking após o pagamento!</div>
                     <div class="tabela-wrapper">
-                        <table>
+                        2€
                             <thead>
                                 <tr>
                                     <th>Pos</th>
@@ -136,9 +136,9 @@
                                 </tr>
                             </thead>
                             <tbody id="ranking-body">
-                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
+                                <td><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
                             <\/tbody>
-                        <\/table>
+                        8\/table>
                     <\/div>
                 <\/div>
             <\/div>
@@ -175,7 +175,6 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = null;
         
-        // Escudos
         const escudosLocais = {
             "VASCO": "vasco.png", "SAO PAULO": "sao-paulo.png", "FLAMENGO": "flamengo.png",
             "CORINTHIANS": "corinthians.png", "PALMEIRAS": "palmeiras.png", "BOTAFOGO": "botafogo.png",
@@ -197,43 +196,23 @@
             return `<span class="time-letra">${nomeTime.charAt(0) || "F"}</span>`;
         }
         
-        function carregarDados() {
-            db.ref('jogos').once('value').then(snap => {
-                todosJogos = snap.val() ? Object.values(snap.val()) : [];
-                if (usuarioAtual) {
-                    mostrarJogos();
-                    mostrarPalpitesGrupo();
-                    atualizarRanking();
-                }
-            }).catch(erro => console.log("Erro jogos:", erro));
-            
-            db.ref('participantes').once('value').then(snap => {
-                todosParticipantes = snap.val() ? Object.values(snap.val()) : [];
-                if (usuarioAtual) {
-                    const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
-                    if (encontrado) usuarioAtual = encontrado;
-                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
-                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
-                    atualizarListaPalpites();
-                    atualizarStatusPagamento();
-                    if (palpiteSelecionado === null && usuarioAtual.palpites.length > 0) palpiteSelecionado = 0;
-                    mostrarJogos();
-                }
-            }).catch(erro => console.log("Erro participantes:", erro));
-            
-            db.ref('prazo').once('value').then(snap => {
-                prazoFinal = snap.val();
-                if (usuarioAtual) mostrarJogos();
-            }).catch(erro => console.log("Erro prazo:", erro));
-            
-            db.ref('config').once('value').then(snap => {
-                const data = snap.val();
-                if (data) configValorAposta = data.valorAposta || 10;
+        function carregarTudo() {
+            Promise.all([
+                db.ref('jogos').once('value'),
+                db.ref('participantes').once('value'),
+                db.ref('prazo').once('value'),
+                db.ref('config').once('value'),
+                db.ref('config/acumulado').once('value'),
+                db.ref('config/chave_pix').once('value')
+            ]).then(([jogosSnap, participantesSnap, prazoSnap, configSnap, acumuladoSnap, chaveSnap]) => {
+                todosJogos = jogosSnap.val() ? Object.values(jogosSnap.val()) : [];
+                todosParticipantes = participantesSnap.val() ? Object.values(participantesSnap.val()) : [];
+                prazoFinal = prazoSnap.val();
+                
+                if (configSnap.val()) configValorAposta = configSnap.val().valorAposta || 10;
                 document.getElementById('info-valor').innerHTML = `Aposta: R$ ${configValorAposta} por palpite`;
-            }).catch(erro => console.log("Erro config:", erro));
-            
-            db.ref('config/acumulado').once('value').then(snap => {
-                const acumulado = snap.val() || 0;
+                
+                const acumulado = acumuladoSnap.val() || 0;
                 const acumuladoDiv = document.getElementById('acumulado-card');
                 const acumuladoValor = document.getElementById('acumulado-valor-jogador');
                 if (acumuladoDiv && acumuladoValor) {
@@ -244,12 +223,23 @@
                         acumuladoDiv.style.display = 'none';
                     }
                 }
-            }).catch(erro => console.log("Erro acumulado:", erro));
-            
-            db.ref('config/chave_pix').once('value').then(snap => {
-                if (snap.val()) chavePix = snap.val();
+                
+                if (chaveSnap.val()) chavePix = chaveSnap.val();
                 document.getElementById('modal-chave-pix').textContent = chavePix;
-            }).catch(erro => console.log("Erro chave_pix:", erro));
+                
+                if (usuarioAtual) {
+                    const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
+                    if (encontrado) usuarioAtual = encontrado;
+                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
+                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+                    atualizarListaPalpites();
+                    atualizarStatusPagamento();
+                    if (palpiteSelecionado === null && usuarioAtual.palpites.length > 0) palpiteSelecionado = 0;
+                    mostrarJogos();
+                    mostrarPalpitesGrupo();
+                    atualizarRanking();
+                }
+            }).catch(erro => console.log("Erro ao carregar dados:", erro));
         }
         
         function prazoExpirado() { return prazoFinal ? new Date() > new Date(prazoFinal) : false; }
@@ -279,7 +269,7 @@
                 if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
                 else palpiteSelecionado = 0;
                 
-                carregarDados();
+                carregarTudo();
             });
         }
         
@@ -497,7 +487,7 @@
             
             const tbody = document.getElementById('ranking-body');
             if (palpitesPagos.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago<\/td><\/tr>'; 
                 return; 
             }
             
@@ -525,7 +515,7 @@
                              <td>${item.p3}</td>
                              <td>${item.p1}</td>
                              <td><strong>${item.total}</strong></td>
-                         </tr>`;
+                          </tr>`;
             }
             
             tbody.innerHTML = html;
@@ -571,7 +561,7 @@
                 const resultado = (j.gols1 !== null && j.gols2 !== null) ? `${j.gols1} x ${j.gols2}` : '--:--';
                 html += `<th style="min-width:80px;">${b1} ${j.time1}<br>vs<br>${b2} ${j.time2}<br><span style="font-size:10px; color:#666;">${resultado}</span></th>`; 
             });
-            html += '</tr></thead><tbody>';
+            html += '</table></thead><tbody>';
             
             participantesOrd.forEach(p => {
                 if (!p.palpites) return;
@@ -647,7 +637,7 @@
                     if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
                     if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
                     else palpiteSelecionado = 0;
-                    carregarDados();
+                    carregarTudo();
                 }
             });
         }
