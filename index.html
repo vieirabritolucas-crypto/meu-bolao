@@ -41,27 +41,27 @@
         .jogo-card { background: white; border-radius: 12px; padding: 15px; margin: 12px 0; border-left: 5px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .jogo-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: bold; font-size: 16px; flex-wrap: wrap; }
         .time-nome { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .time-escudo { width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: white; padding: 2px; }
+        .time-escudo { width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: white; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .time-letra { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #667eea; border-radius: 50%; font-weight: bold; font-size: 12px; color: white; }
         
-        .resultado-final { background: #e8f4fd; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; font-weight: 600; font-size: 14px; }
+        .resultado-final { background: #e8f4fd; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; font-weight: 600; font-size: 14px; color: #2c3e50; }
         .placar-container { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
         .time-placar { display: flex; align-items: center; gap: 8px; background: #f5f5f5; padding: 8px 12px; border-radius: 40px; flex: 1; }
-        .time-placar label { font-weight: 600; min-width: 70px; font-size: 14px; }
-        .time-placar input { width: 65px; padding: 8px; border: 2px solid #ddd; border-radius: 30px; text-align: center; }
+        .time-placar label { font-weight: 600; min-width: 70px; font-size: 14px; color: #333; }
+        .time-placar input { width: 65px; padding: 8px; border: 2px solid #ddd; border-radius: 30px; text-align: center; font-size: 14px; color: #333; background: white; }
         
-        .btn-primario { padding: 12px 30px; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 40px; cursor: pointer; margin-top: 15px; width: 100%; max-width: 250px; display: block; margin: 15px auto 0; }
+        .btn-primario { padding: 12px 30px; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; margin-top: 15px; width: 100%; max-width: 250px; display: block; margin: 15px auto 0; }
         .btn-sair { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
         
         #login { max-width: 350px; margin: 30px auto; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 30px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 30px; color: #333; background: white; }
         .aviso { background: #f39c12; color: white; padding: 12px; border-radius: 30px; text-align: center; margin: 15px 0; }
         .info-valor { background: #667eea; color: white; padding: 8px; border-radius: 30px; text-align: center; margin: 10px 0; }
-        .status-pagamento { background: #fff3cd; padding: 12px; border-radius: 30px; margin: 10px 0; text-align: center; }
+        .status-pagamento { background: #fff3cd; padding: 12px; border-radius: 30px; margin: 10px 0; text-align: center; color: #333; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 25px; padding: 30px; max-width: 350px; width: 90%; text-align: center; }
-        .modal-pix-chave { background: #f5f5f5; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 16px; font-weight: bold; margin: 15px 0; word-break: break-all; border: 2px solid #27ae60; }
+        .modal-pix-chave { background: #f5f5f5; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 16px; font-weight: bold; margin: 15px 0; word-break: break-all; border: 2px solid #27ae60; color: #333; }
         .btn-fechar { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 40px; cursor: pointer; margin-top: 15px; width: 100%; }
         
         table { width: 100%; border-collapse: collapse; background: white; }
@@ -133,7 +133,7 @@
                                     <th>3pts</th>
                                     <th>1pt</th>
                                     <th>Total</th>
-                                </table>
+                                </tr>
                             </thead>
                             <tbody id="ranking-body">
                                 <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
@@ -400,30 +400,38 @@
                     p.palpites.forEach((palpite, idx) => {
                         if (p.pagamentos[idx] === true) {
                             const pontos = calcularPontos(palpite);
-                            palpitesPagos.push({ nome: p.nome, num: idx+1, ...pontos });
+                            palpitesPagos.push({ 
+                                nome: p.nome, 
+                                palpiteNum: idx + 1, 
+                                total: pontos.total,
+                                p3: pontos.p3,
+                                p1: pontos.p1
+                            });
                         }
                     });
                 }
             });
             
-            palpitesPagos.sort((a,b) => b.total - a.total);
+            palpitesPagos.sort((a, b) => b.total - a.total);
             
             if (palpitesPagos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago<\/td><\/tr>';
+                tbody.innerHTML = '<td><td colspan="6" style="text-align: center;">Nenhum palpite pago. Faça o pagamento para aparecer no ranking!<\/td><\/tr>';
                 return;
             }
             
             let html = '';
-            palpitesPagos.forEach((item, i) => {
-                html += `<tr ${i === 0 ? 'class="primeiro"' : ''}>
-                    <td><strong>${i+1}º</strong><\/td>
-                    <td>${item.nome}<\/td>
-                    <td>#${item.num}<\/td>
-                    <td>${item.p3}<\/td>
-                    <td>${item.p1}<\/td>
-                    <td><strong>${item.total}<\/strong><\/td>
-                 <\/tr>`;
-            });
+            for (let i = 0; i < palpitesPagos.length; i++) {
+                const item = palpitesPagos[i];
+                const isLider = (i === 0);
+                html += `<tr ${isLider ? 'class="primeiro"' : ''}>
+                            <td><strong>${i+1}º</strong></td>
+                            <td>${item.nome}</td>
+                            <td>#${item.palpiteNum}</td>
+                            <td>${item.p3}</td>
+                            <td>${item.p1}</td>
+                            <td><strong>${item.total}</strong></td>
+                          </tr>`;
+            }
             tbody.innerHTML = html;
         }
         
@@ -441,7 +449,7 @@
             if (!jogos.length) { container.innerHTML = '<p>Nenhum jogo</p>'; return; }
             
             const jogosOrd = [...jogos].sort((a,b)=>(a.id||0)-(b.id||0));
-            const participantesOrd = [...participants].sort((a,b)=>a.nome.localeCompare(b.nome));
+            const participantesOrd = [...participantes].sort((a,b)=>a.nome.localeCompare(b.nome));
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
             jogosOrd.forEach(j => { html += `<th>${j.time1}<br>x<br>${j.time2}</th>`; });
