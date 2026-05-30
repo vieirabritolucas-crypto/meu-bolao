@@ -125,25 +125,9 @@
                 <div class="card">
                     <h2>🏆 Ranking</h2>
                     <div id="ranking-aviso" class="aviso" style="display: none;">⏳ Você só aparece no ranking após o pagamento!</div>
-                    <div class="tabela-wrapper">
-                        能
-                            <thead>
-                                <tr>
-                                    <th>Pos</th>
-                                    <th>Jogador</th>
-                                    <th>Palpite</th>
-                                    <th>3pts</th>
-                                    <th>1pt</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ranking-body">
-                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
-                            <\/tbody>
-                        8\/table>
-                    <\/div>
-                <\/div>
-            <\/div>
+                    <!-- A estrutura da tabela será criada dinamicamente -->
+                </div>
+            </div>
             
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
@@ -151,9 +135,9 @@
                     <div id="prazo-aviso" class="aviso">🔒 Palpites visíveis após o prazo</div>
                     <div id="palpites-grupo-container" style="min-height: 100px;"></div>
                 </div>
-            <\/div>
-        <\/div>
-    <\/div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // ========== FUNÇÃO DE ESCUDOS ==========
@@ -401,26 +385,66 @@
             return { total, p3, p1 };
         }
         
-        // RANKING CORRIGIDO - COM VERIFICAÇÃO DE EXISTÊNCIA DO ELEMENTO
+        // RANKING CORRIGIDO - CRIA A ESTRUTURA SE NÃO EXISTIR
         function atualizarRanking() {
-            // Verifica se o elemento existe
-            let tbody = document.getElementById('ranking-body');
-            if (!tbody) {
-                console.log("Elemento 'ranking-body' não encontrado, tentando criar...");
-                // Tenta encontrar a tabela e criar o tbody
-                const tabela = document.querySelector('.tabela-wrapper table');
-                if (tabela) {
-                    const novoTbody = document.createElement('tbody');
-                    novoTbody.id = 'ranking-body';
-                    tabela.appendChild(novoTbody);
-                    tbody = novoTbody;
-                    console.log("Elemento 'ranking-body' criado manualmente");
-                } else {
-                    console.error("Não foi possível criar o elemento 'ranking-body'");
-                    return;
-                }
+            // Procura a aba de ranking
+            const abaRanking = document.getElementById('aba-ranking');
+            if (!abaRanking) {
+                console.log("Aba ranking não encontrada");
+                return;
             }
             
+            // Procura o card dentro da aba
+            const card = abaRanking.querySelector('.card');
+            if (!card) {
+                console.log("Card não encontrado");
+                return;
+            }
+            
+            // Procura ou cria o container da tabela
+            let wrapper = card.querySelector('.tabela-wrapper');
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.className = 'tabela-wrapper';
+                card.appendChild(wrapper);
+                console.log("Criado .tabela-wrapper");
+            }
+            
+            // Procura ou cria a tabela
+            let tabela = wrapper.querySelector('table');
+            if (!tabela) {
+                tabela = document.createElement('table');
+                wrapper.appendChild(tabela);
+                console.log("Criada tabela");
+            }
+            
+            // Procura ou cria o thead
+            let thead = tabela.querySelector('thead');
+            if (!thead) {
+                thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Pos</th>
+                        <th>Jogador</th>
+                        <th>Palpite</th>
+                        <th>3pts</th>
+                        <th>1pt</th>
+                        <th>Total</th>
+                    </tr>
+                `;
+                tabela.appendChild(thead);
+            }
+            
+            // Procura ou cria o tbody
+            let tbody = document.getElementById('ranking-body');
+            if (!tbody) {
+                tbody = document.createElement('tbody');
+                tbody.id = 'ranking-body';
+                tabela.appendChild(tbody);
+                console.log("Criado tbody#ranking-body");
+            }
+            
+            // Calcula os palpites pagos
             const palpitesPagos = [];
             todosParticipantes.forEach(p => {
                 if (!p.palpites) return;
@@ -532,7 +556,7 @@
                 });
             });
             
-            html += '</tbody><tr></div>';
+            html += '</tbody></table></div>';
             
             if (!temPalpite) {
                 container.innerHTML = '<p style="text-align:center; padding:20px;">Nenhum palpite registrado ainda</p>';
