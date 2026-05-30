@@ -440,9 +440,6 @@
                         p.palpites.forEach((palpite, idx) => {
                             const pago = p.pagamentos && p.pagamentos[idx];
                             
-                            let acertos3 = 0;
-                            let acertos1 = 0;
-                            
                             html += `<tr>
                                         <td><strong>${p.nome}</strong></td>
                                         <td>#${idx+1}</td>
@@ -452,27 +449,19 @@
                                 const palpiteJogo = palpite.palpites?.find(pp => pp && pp.jogoId === j.id);
                                 
                                 let exibicao = '';
-                                let estilo = '';
-                                
                                 if (palpiteJogo && j.gols1 !== null && j.gols2 !== null) {
                                     const acertouExato = (palpiteJogo.gols1 === j.gols1 && palpiteJogo.gols2 === j.gols2);
                                     if (acertouExato) {
-                                        estilo = 'acerto-exato';
                                         exibicao = `🎯 ${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
-                                        acertos3++;
                                     } else {
                                         const resJogo = j.gols1 > j.gols2 ? 1 : j.gols2 > j.gols1 ? 2 : 0;
                                         const resPalpite = palpiteJogo.gols1 > palpiteJogo.gols2 ? 1 : palpiteJogo.gols2 > palpiteJogo.gols1 ? 2 : 0;
                                         if (resJogo === resPalpite) {
-                                            estilo = 'acerto-resultado';
                                             exibicao = `👍 ${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
-                                            acertos1++;
                                         } else {
-                                            estilo = 'acerto-erro';
                                             exibicao = `❌ ${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
                                         }
                                     }
-                                    exibicao = `<span class="${estilo}">${exibicao}</span>`;
                                 } else if (palpiteJogo) {
                                     exibicao = `${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
                                 } else {
@@ -482,26 +471,13 @@
                                 html += `<td style="text-align: center;">${exibicao}<\/td>`;
                             });
                             
-                            const totalAcertos = acertos3 + acertos1;
-                            const pontosTotais = (acertos3 * 3) + (acertos1 * 1);
-                            
-                            let acertosHtml = '';
-                            if (totalAcertos === 0) {
-                                acertosHtml = `<span style="color: #999;">0<\/span>`;
-                            } else {
-                                acertosHtml = `<span style="font-weight: bold; background: #667eea; color: white; padding: 4px 8px; border-radius: 20px; display: inline-block;">
-                                    🎯 ${acertos3} | 👍 ${acertos1}<br>🏆 ${pontosTotais}pts
-                                <\/span>`;
-                            }
-                            
-                            html += `<td style="text-align: center;">${acertosHtml}<\/td>`;
                             html += `</tr>`;
                         });
                     } else {
                         html += `<tr>
                                     <td>${p.nome}</td>
                                     <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite<\/td>
-                                  </td>`;
+                                  </tr>`;
                     }
                 });
             }
@@ -513,45 +489,23 @@
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
             let csv = '\uFEFFJogador;Palpite;Pago';
             jogosOrdenados.forEach(j => csv += `;${j.time1} x ${j.time2}`);
-            csv += ';Acertos3;Acertos1;PontosTotais\n';
+            csv += '\n';
             
             participantes.forEach(p => {
                 if(p.palpites) {
                     p.palpites.forEach((palpite, idx) => {
                         const pago = p.pagamentos && p.pagamentos[idx];
-                        
-                        let acertos3 = 0;
-                        let acertos1 = 0;
-                        
                         csv += `${p.nome};#${idx+1};${pago ? 'Sim' : 'Não'}`;
                         
                         jogosOrdenados.forEach(j => { 
                             const palpiteJogo = palpite.palpites?.find(pp => pp && pp.jogoId === j.id);
-                            
-                            if (palpiteJogo && j.gols1 !== null && j.gols2 !== null) {
-                                const acertouExato = (palpiteJogo.gols1 === j.gols1 && palpiteJogo.gols2 === j.gols2);
-                                if (acertouExato) {
-                                    csv += `;${palpiteJogo.gols1}-${palpiteJogo.gols2} (🎯)`;
-                                    acertos3++;
-                                } else {
-                                    const resJogo = j.gols1 > j.gols2 ? 1 : j.gols2 > j.gols1 ? 2 : 0;
-                                    const resPalpite = palpiteJogo.gols1 > palpiteJogo.gols2 ? 1 : palpiteJogo.gols2 > palpiteJogo.gols1 ? 2 : 0;
-                                    if (resJogo === resPalpite) {
-                                        csv += `;${palpiteJogo.gols1}-${palpiteJogo.gols2} (👍)`;
-                                        acertos1++;
-                                    } else {
-                                        csv += `;${palpiteJogo.gols1}-${palpiteJogo.gols2} (❌)`;
-                                    }
-                                }
-                            } else if (palpiteJogo) {
+                            if (palpiteJogo) {
                                 csv += `;${palpiteJogo.gols1}-${palpiteJogo.gols2}`;
                             } else {
                                 csv += `;---`;
                             }
                         });
-                        
-                        const pontosTotais = (acertos3 * 3) + (acertos1 * 1);
-                        csv += `;${acertos3};${acertos1};${pontosTotais}\n`;
+                        csv += '\n';
                     });
                 }
             });
@@ -608,9 +562,6 @@
                     .time-visitante { text-align: left; font-weight: 500; }
                     .gols { font-weight: bold; width: 50px; }
                     .x { width: 30px; font-weight: bold; }
-                    .acerto-exato { background-color: #2ecc71; color: white; padding: 2px 6px; border-radius: 12px; }
-                    .acerto-resultado { background-color: #f39c12; color: white; padding: 2px 6px; border-radius: 12px; }
-                    .acerto-erro { background-color: #e74c3c; color: white; padding: 2px 6px; border-radius: 12px; }
                     footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; }
                 </style>
             </head>
@@ -635,48 +586,28 @@
                     const palpiteJogo = item.palpite.palpites?.find(pp => pp && pp.jogoId === jogo.id);
                     let golsCasa = '---';
                     let golsVisitante = '---';
-                    let classeCasa = '';
-                    let classeVisitante = '';
                     
-                    if (palpiteJogo && palpiteJogo.gols1 !== undefined && palpiteJogo.gols2 !== undefined) {
+                    if (palpiteJogo && palpiteJogo.gols1 !== undefined) {
                         golsCasa = palpiteJogo.gols1;
                         golsVisitante = palpiteJogo.gols2;
-                        
-                        if (jogo.gols1 !== null && jogo.gols2 !== null) {
-                            const acertouExato = (palpiteJogo.gols1 === jogo.gols1 && palpiteJogo.gols2 === jogo.gols2);
-                            if (acertouExato) {
-                                classeCasa = 'acerto-exato';
-                                classeVisitante = 'acerto-exato';
-                            } else {
-                                const resJogo = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
-                                const resPalpite = palpiteJogo.gols1 > palpiteJogo.gols2 ? 1 : palpiteJogo.gols2 > palpiteJogo.gols1 ? 2 : 0;
-                                if (resJogo === resPalpite) {
-                                    classeCasa = 'acerto-resultado';
-                                    classeVisitante = 'acerto-resultado';
-                                } else {
-                                    classeCasa = 'acerto-erro';
-                                    classeVisitante = 'acerto-erro';
-                                }
-                            }
-                        }
                     }
                     
                     html += `<tr>
                                 <td class="time-casa">${jogo.time1 || '?'}</td>
-                                <td class="gols"><span class="${classeCasa}">${golsCasa}</span></td>
-                                <td class="x">x</td>
-                                <td class="gols"><span class="${classeVisitante}">${golsVisitante}</span></td>
-                                <td class="time-visitante">${jogo.time2 || '?'}</td>
-                              </tr>`;
+                                <td class="gols">${golsCasa}</td>
+                                <td class="x">x<\/td>
+                                <td class="gols">${golsVisitante}<\/td>
+                                <td class="time-visitante">${jogo.time2 || '?'}<\/td>
+                              <\/tr>`;
                 });
                 
-                html += `</tbody>
-                         </table>`;
-                html += `<footer>Gerado por Meu Bolão - ${new Date().toLocaleString('pt-BR')}</footer>`;
-                html += `</div>`;
+                html += `<\/tbody>
+                         <\/table>`;
+                html += `<footer>Gerado por Meu Bolão - ${new Date().toLocaleString('pt-BR')}<\/footer>`;
+                html += `<\/div>`;
             });
             
-            html += `</body></html>`;
+            html += `<\/body><\/html>`;
             
             const janela = window.open('', '_blank');
             if(janela) {
