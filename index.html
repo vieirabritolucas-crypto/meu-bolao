@@ -175,7 +175,6 @@
         let chavePix = "77 98843-1026";
         let palpiteSelecionado = 0;
         
-        // Escudos
         const escudos = {
             "PSG": "psg.png", "ARSENAL": "arsenal.png", "FLAMENGO": "flamengo.png",
             "CORITIBA": "coritiba.png", "BAHIA": "bahia.png", "BOTAFOGO": "botafogo.png",
@@ -228,14 +227,12 @@
                     const encontrado = participantes.find(p => p && p.celular === usuario.celular);
                     if (encontrado) usuario = encontrado;
                     
-                    // GARANTIR QUE SEMPRE TENHA PELO MENOS UM PALPITE
                     if (!usuario.palpites || usuario.palpites.length === 0) {
                         usuario.palpites = [{ id: Date.now(), palpites: [] }];
                         usuario.pagamentos = [false];
                         salvarUsuario();
                     }
                     
-                    // GARANTIR QUE palpiteSelecionado É VÁLIDO
                     if (palpiteSelecionado === null || palpiteSelecionado >= usuario.palpites.length) {
                         palpiteSelecionado = 0;
                     }
@@ -275,7 +272,6 @@
                 let participante = participantes.find(p => p.celular === celular);
                 
                 if (!participante) {
-                    // CRIAR NOVO PARTICIPANTE COM UM PALPITE INICIAL
                     participante = { 
                         nome, 
                         celular, 
@@ -284,7 +280,6 @@
                     };
                     await db.ref('participantes').push(participante);
                 } else {
-                    // VERIFICAR SE O PARTICIPANTE EXISTENTE TEM PALPITES
                     if (!participante.palpites || participante.palpites.length === 0) {
                         participante.palpites = [{ id: Date.now(), palpites: [] }];
                         participante.pagamentos = [false];
@@ -298,7 +293,6 @@
                 document.getElementById('painel').style.display = 'block';
                 document.getElementById('btnSair').style.display = 'inline-block';
                 
-                // GARANTIR QUE O PRIMEIRO PALPITE ESTÁ SELECIONADO
                 palpiteSelecionado = 0;
                 
                 await carregarAcumulado();
@@ -309,7 +303,6 @@
             }
         }
         
-        // Função auxiliar para salvar participante
         async function salvarParticipante(participante) {
             const snap = await db.ref('participantes').once('value');
             const data = snap.val();
@@ -469,7 +462,7 @@
                 const isLider = (i === 0);
                 html += `<tr ${isLider ? 'class="primeiro"' : ''}>
                             <td><strong>${i+1}º</strong></td>
-                            <td>${item.nome}</td>
+                            <td>${item.nome}${isLider ? ' 🏆' : ''}</td>
                             <td>#${item.palpiteNum}</td>
                             <td>${item.p3}</td>
                             <td>${item.p1}</td>
@@ -497,7 +490,7 @@
             
             let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
             jogosOrd.forEach(j => { html += `<th>${j.time1}<br>x<br>${j.time2}</th>`; });
-            html += '</tr></thead><tbody>';
+            html += '</td></thead><tbody>';
             
             participantesOrd.forEach(p => {
                 if (!p.palpites) return;
@@ -554,7 +547,6 @@
                 const lista = snap.val() ? Object.values(snap.val()) : [];
                 usuario = lista.find(p => p.celular === celularSalvo);
                 if (usuario) {
-                    // GARANTIR PALPITE INICIAL PARA USUÁRIO EXISTENTE
                     if (!usuario.palpites || usuario.palpites.length === 0) {
                         usuario.palpites = [{ id: Date.now(), palpites: [] }];
                         usuario.pagamentos = [false];
