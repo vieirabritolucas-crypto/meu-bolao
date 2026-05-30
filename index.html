@@ -403,10 +403,22 @@
         
         // RANKING CORRIGIDO - COM VERIFICAÇÃO DE EXISTÊNCIA DO ELEMENTO
         function atualizarRanking() {
-            const tbody = document.getElementById('ranking-body');
+            // Verifica se o elemento existe
+            let tbody = document.getElementById('ranking-body');
             if (!tbody) {
-                console.log("Elemento ranking-body não encontrado, aguardando...");
-                return;
+                console.log("Elemento 'ranking-body' não encontrado, tentando criar...");
+                // Tenta encontrar a tabela e criar o tbody
+                const tabela = document.querySelector('.tabela-wrapper table');
+                if (tabela) {
+                    const novoTbody = document.createElement('tbody');
+                    novoTbody.id = 'ranking-body';
+                    tabela.appendChild(novoTbody);
+                    tbody = novoTbody;
+                    console.log("Elemento 'ranking-body' criado manualmente");
+                } else {
+                    console.error("Não foi possível criar o elemento 'ranking-body'");
+                    return;
+                }
             }
             
             const palpitesPagos = [];
@@ -520,7 +532,7 @@
                 });
             });
             
-            html += '</tbody></table></div>';
+            html += '</tbody><tr></div>';
             
             if (!temPalpite) {
                 container.innerHTML = '<p style="text-align:center; padding:20px;">Nenhum palpite registrado ainda</p>';
