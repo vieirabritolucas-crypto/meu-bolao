@@ -124,7 +124,7 @@
                     <h2>Ranking</h2>
                     <div id="ranking-aviso" class="aviso" style="display: none;">Você só aparece no ranking após o pagamento!</div>
                     <div class="tabela-wrapper">
-                        <table>
+                        能
                             <thead>
                                 <tr>
                                     <th>Pos</th>
@@ -136,12 +136,12 @@
                                 </tr>
                             </thead>
                             <tbody id="ranking-body">
-                                <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                                <tr><td colspan="6" style="text-align: center;">Carregando...<\/td><\/tr>
+                            <\/tbody>
+                        8\/table>
+                    <\/div>
+                <\/div>
+            <\/div>
             
             <div id="aba-grupo" class="conteudo">
                 <div class="card">
@@ -149,9 +149,9 @@
                     <div id="prazo-aviso" class="aviso">Palpites visíveis após o prazo</div>
                     <div id="palpites-grupo-container"></div>
                 </div>
-            </div>
-        </div>
-    </div>
+            <\/div>
+        <\/div>
+    <\/div>
 
     <script>
         const firebaseConfig = {
@@ -167,118 +167,87 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
-        let usuarioAtual = null;
-        let todosJogos = [];
-        let todosParticipantes = [];
-        let prazoFinal = null;
+        let usuario = null;
+        let jogos = [];
+        let participantes = [];
+        let prazo = null;
         let configValorAposta = 10;
         let chavePix = "77 98843-1026";
-        let palpiteSelecionado = null;
+        let palpiteSelecionado = 0;
         
-        const escudosLocais = {
-            "VASCO": "vasco.png", "SAO PAULO": "sao-paulo.png", "FLAMENGO": "flamengo.png",
-            "CORINTHIANS": "corinthians.png", "PALMEIRAS": "palmeiras.png", "BOTAFOGO": "botafogo.png",
-            "FLUMINENSE": "fluminense.png", "SANTOS": "santos.png", "GREMIOS": "gremio.png",
-            "INTERNACIONAL": "internacional.png", "CRUZEIRO": "cruzeiro.png", "BAHIA": "bahia.png",
-            "CORITIBA": "coritiba.png", "CHAPECOENSE": "chapecoense.png", "VITORIA": "vitoria.png",
-            "MIRASSOL": "mirassol.png", "REMO": "remo.png", "BRAGANTINO": "red-bull-bragantino.png",
-            "ATHLETICO PR": "athletico-paranaense.png", "ATLETICO MG": "atletico-mineiro.png",
-            "PSG": "psg.png", "ARSENAL": "arsenal.png"
+        // Escudos
+        const escudos = {
+            "PSG": "psg.png", "ARSENAL": "arsenal.png", "FLAMENGO": "flamengo.png",
+            "CORITIBA": "coritiba.png", "BAHIA": "bahia.png", "BOTAFOGO": "botafogo.png",
+            "CORINTHIANS": "corinthians.png", "GREMIOS": "gremio.png", "SANTOS": "santos.png",
+            "VITORIA": "vitoria.png", "BRAGANTINO": "bragantino.png", "INTERNACIONAL": "internacional.png",
+            "PALMEIRAS": "palmeiras.png", "CHAPECOENSE": "chapecoense.png", "VASCO": "vasco.png",
+            "ATLETICO MG": "atletico-mg.png", "CRUZEIRO": "cruzeiro.png", "FLUMINENSE": "fluminense.png",
+            "REMO": "remo.png", "SAO PAULO": "sao-paulo.png"
         };
         
-        function getTimeBadge(time) {
-            const nomeTime = time?.toUpperCase().trim() || "";
-            for (let [key, arquivo] of Object.entries(escudosLocais)) {
-                if (nomeTime.includes(key) || key.includes(nomeTime)) {
-                    return `<img src="escudos/${arquivo}" class="time-escudo" onerror="this.style.display='none'; this.nextSibling.style.display='inline-flex'"><span class="time-letra" style="display:none">${nomeTime.charAt(0)}</span>`;
+        function getEscudo(time) {
+            const nome = time?.toUpperCase().trim() || "";
+            for (let [key, arq] of Object.entries(escudos)) {
+                if (nome.includes(key)) {
+                    return `<img src="escudos/${arq}" class="time-escudo" onerror="this.style.display='none'"><span class="time-letra">${nome.charAt(0)}</span>`;
                 }
             }
-            return `<span class="time-letra">${nomeTime.charAt(0) || "F"}</span>`;
+            return `<span class="time-letra">${nome.charAt(0) || "?"}</span>`;
         }
         
-        function carregarTudo() {
-            Promise.all([
-                db.ref('jogos').once('value'),
-                db.ref('participantes').once('value'),
-                db.ref('prazo').once('value'),
-                db.ref('config').once('value'),
-                db.ref('config/acumulado').once('value'),
-                db.ref('config/chave_pix').once('value')
-            ]).then(([jogosSnap, participantesSnap, prazoSnap, configSnap, acumuladoSnap, chaveSnap]) => {
-                todosJogos = jogosSnap.val() ? Object.values(jogosSnap.val()) : [];
-                todosParticipantes = participantesSnap.val() ? Object.values(participantesSnap.val()) : [];
-                prazoFinal = prazoSnap.val();
+        function prazoExpirado() { return prazo ? new Date() > new Date(prazo) : false; }
+        
+        async function carregarAcumulado() {
+            const snap = await db.ref('config/acumulado').once('value');
+            const acumulado = snap.val() || 0;
+            const div = document.getElementById('acumulado-card');
+            const valorDiv = document.getElementById('acumulado-valor-jogador');
+            if (div && valorDiv) {
+                if (acumulado > 0) {
+                    div.style.display = 'block';
+                    valorDiv.innerHTML = `R$ ${acumulado.toFixed(2)}`;
+                } else {
+                    div.style.display = 'none';
+                }
+            }
+        }
+        
+        async function carregarDados() {
+            try {
+                const [jogosSnap, participantesSnap, prazoSnap] = await Promise.all([
+                    db.ref('jogos').once('value'),
+                    db.ref('participantes').once('value'),
+                    db.ref('prazo').once('value')
+                ]);
+                jogos = jogosSnap.val() ? Object.values(jogosSnap.val()) : [];
+                participantes = participantesSnap.val() ? Object.values(participantesSnap.val()) : [];
+                prazo = prazoSnap.val();
                 
-                if (configSnap.val()) configValorAposta = configSnap.val().valorAposta || 10;
-                document.getElementById('info-valor').innerHTML = `Aposta: R$ ${configValorAposta} por palpite`;
-                
-                const acumulado = acumuladoSnap.val() || 0;
-                const acumuladoDiv = document.getElementById('acumulado-card');
-                const acumuladoValor = document.getElementById('acumulado-valor-jogador');
-                if (acumuladoDiv && acumuladoValor) {
-                    if (acumulado > 0) {
-                        acumuladoDiv.style.display = 'block';
-                        acumuladoValor.innerHTML = `R$ ${acumulado.toFixed(2)}`;
-                    } else {
-                        acumuladoDiv.style.display = 'none';
+                if (usuario) {
+                    const encontrado = participantes.find(p => p && p.celular === usuario.celular);
+                    if (encontrado) usuario = encontrado;
+                    
+                    // GARANTIR QUE SEMPRE TENHA PELO MENOS UM PALPITE
+                    if (!usuario.palpites || usuario.palpites.length === 0) {
+                        usuario.palpites = [{ id: Date.now(), palpites: [] }];
+                        usuario.pagamentos = [false];
+                        salvarUsuario();
                     }
-                }
-                
-                if (chaveSnap.val()) chavePix = chaveSnap.val();
-                document.getElementById('modal-chave-pix').textContent = chavePix;
-                
-                if (usuarioAtual) {
-                    const encontrado = todosParticipantes.find(p => p && p.celular === usuarioAtual.celular);
-                    if (encontrado) usuarioAtual = encontrado;
-                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
-                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
+                    
+                    // GARANTIR QUE palpiteSelecionado É VÁLIDO
+                    if (palpiteSelecionado === null || palpiteSelecionado >= usuario.palpites.length) {
+                        palpiteSelecionado = 0;
+                    }
+                    
                     atualizarListaPalpites();
-                    atualizarStatusPagamento();
-                    if (palpiteSelecionado === null && usuarioAtual.palpites.length > 0) palpiteSelecionado = 0;
                     mostrarJogos();
+                    mostrarRanking();
                     mostrarPalpitesGrupo();
-                    atualizarRanking();
                 }
-            }).catch(erro => console.log("Erro ao carregar dados:", erro));
-        }
-        
-        function prazoExpirado() { return prazoFinal ? new Date() > new Date(prazoFinal) : false; }
-        
-        function fazerLogin() {
-            const nome = document.getElementById('nome').value.trim();
-            const celular = document.getElementById('celular').value.trim();
-            if (!nome || !celular) { alert('Preencha nome e celular!'); return; }
-            
-            db.ref('participantes').once('value').then(snap => {
-                const participantes = snap.val() ? Object.values(snap.val()) : [];
-                let participante = participantes.find(p => p && p.celular === celular);
-                
-                if (!participante) {
-                    participante = { nome, celular, palpites: [], pagamentos: [] };
-                    db.ref('participantes').push(participante);
-                }
-                
-                usuarioAtual = participante;
-                localStorage.setItem('userCelular', celular);
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('painel').style.display = 'block';
-                document.getElementById('btnSair').style.display = 'inline-block';
-                
-                if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
-                if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
-                if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
-                else palpiteSelecionado = 0;
-                
-                carregarTudo();
-            });
-        }
-        
-        function logout() { 
-            localStorage.removeItem('userCelular'); 
-            usuarioAtual = null; 
-            document.getElementById('login').style.display = 'block'; 
-            document.getElementById('painel').style.display = 'none'; 
-            document.getElementById('btnSair').style.display = 'none'; 
+            } catch(e) {
+                console.log("Erro carregar dados:", e);
+            }
         }
         
         function salvarUsuario() {
@@ -286,13 +255,81 @@
                 const data = snap.val();
                 if (data) {
                     for (let key in data) {
-                        if (data[key].celular === usuarioAtual.celular) {
-                            db.ref('participantes/' + key).set(usuarioAtual);
+                        if (data[key].celular === usuario.celular) {
+                            db.ref('participantes/' + key).set(usuario);
                             break;
                         }
                     }
                 }
             });
+        }
+        
+        async function fazerLogin() {
+            const nome = document.getElementById('nome').value.trim();
+            const celular = document.getElementById('celular').value.trim();
+            if (!nome || !celular) { alert('Preencha os campos'); return; }
+            
+            try {
+                const snap = await db.ref('participantes').once('value');
+                let participantes = snap.val() ? Object.values(snap.val()) : [];
+                let participante = participantes.find(p => p.celular === celular);
+                
+                if (!participante) {
+                    // CRIAR NOVO PARTICIPANTE COM UM PALPITE INICIAL
+                    participante = { 
+                        nome, 
+                        celular, 
+                        palpites: [{ id: Date.now(), palpites: [] }], 
+                        pagamentos: [false] 
+                    };
+                    await db.ref('participantes').push(participante);
+                } else {
+                    // VERIFICAR SE O PARTICIPANTE EXISTENTE TEM PALPITES
+                    if (!participante.palpites || participante.palpites.length === 0) {
+                        participante.palpites = [{ id: Date.now(), palpites: [] }];
+                        participante.pagamentos = [false];
+                        await salvarParticipante(participante);
+                    }
+                }
+                
+                usuario = participante;
+                localStorage.setItem('userCelular', celular);
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('painel').style.display = 'block';
+                document.getElementById('btnSair').style.display = 'inline-block';
+                
+                // GARANTIR QUE O PRIMEIRO PALPITE ESTÁ SELECIONADO
+                palpiteSelecionado = 0;
+                
+                await carregarAcumulado();
+                await carregarDados();
+            } catch(e) {
+                console.log("Erro login:", e);
+                alert("Erro ao fazer login. Tente novamente.");
+            }
+        }
+        
+        // Função auxiliar para salvar participante
+        async function salvarParticipante(participante) {
+            const snap = await db.ref('participantes').once('value');
+            const data = snap.val();
+            if (data) {
+                for (let key in data) {
+                    if (data[key].celular === participante.celular) {
+                        await db.ref('participantes/' + key).set(participante);
+                        return;
+                    }
+                }
+            }
+            await db.ref('participantes').push(participante);
+        }
+        
+        function logout() {
+            localStorage.removeItem('userCelular');
+            usuario = null;
+            document.getElementById('login').style.display = 'block';
+            document.getElementById('painel').style.display = 'none';
+            document.getElementById('btnSair').style.display = 'none';
         }
         
         function atualizarListaPalpites() {
@@ -303,317 +340,205 @@
             const btnNovo = document.createElement('button');
             btnNovo.className = 'palpite-btn novo';
             btnNovo.innerHTML = '+ Novo Palpite';
-            btnNovo.onclick = () => criarNovoPalpite();
+            btnNovo.onclick = () => {
+                usuario.palpites.push({ id: Date.now(), palpites: [] });
+                usuario.pagamentos.push(false);
+                salvarUsuario();
+                palpiteSelecionado = usuario.palpites.length - 1;
+                atualizarListaPalpites();
+                mostrarJogos();
+            };
             container.appendChild(btnNovo);
             
-            if (!usuarioAtual.palpites || usuarioAtual.palpites.length === 0) return;
+            if (!usuario.palpites || usuario.palpites.length === 0) return;
             
-            usuarioAtual.palpites.forEach((palpite, idx) => {
-                const pago = usuarioAtual.pagamentos && usuarioAtual.pagamentos[idx];
-                const statusTexto = pago ? 'PAGO' : 'PENDENTE';
+            usuario.palpites.forEach((p, idx) => {
+                const pago = usuario.pagamentos[idx];
                 const btn = document.createElement('button');
                 btn.className = `palpite-btn ${palpiteSelecionado === idx ? 'ativo' : ''}`;
-                btn.innerHTML = `${statusTexto} Palpite ${idx + 1}`;
+                btn.innerHTML = `${pago ? 'PAGO' : 'PENDENTE'} Palpite ${idx + 1}`;
                 btn.onclick = () => { palpiteSelecionado = idx; atualizarListaPalpites(); mostrarJogos(); };
                 container.appendChild(btn);
             });
         }
         
-        function criarNovoPalpite() {
-            if (!usuarioAtual) return;
-            usuarioAtual.palpites.push({ id: Date.now(), palpites: [] });
-            if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
-            usuarioAtual.pagamentos.push(false);
-            salvarUsuario();
-            palpiteSelecionado = usuarioAtual.palpites.length - 1;
-            atualizarListaPalpites();
-            mostrarJogos();
-            atualizarStatusPagamento();
-        }
-        
-        function excluirPalpite(idx) {
-            if (!confirm(`Excluir Palpite ${idx + 1}?`)) return;
-            usuarioAtual.palpites.splice(idx, 1);
-            usuarioAtual.pagamentos.splice(idx, 1);
-            if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
-            else if (palpiteSelecionado >= usuarioAtual.palpites.length) palpiteSelecionado = usuarioAtual.palpites.length - 1;
-            salvarUsuario();
-            atualizarListaPalpites();
-            mostrarJogos();
-            atualizarStatusPagamento();
-        }
-        
         function mostrarJogos() {
             const container = document.getElementById('jogos-container');
             if (!container) return;
-            
-            if (!todosJogos || todosJogos.length === 0) { 
-                container.innerHTML = '<p>Nenhum jogo cadastrado</p>'; 
-                return; 
-            }
-            
-            if (palpiteSelecionado === null || !usuarioAtual.palpites[palpiteSelecionado]) { 
-                container.innerHTML = '<p>Crie um palpite primeiro</p>'; 
-                return; 
-            }
+            if (!jogos.length) { container.innerHTML = '<p>Nenhum jogo cadastrado</p>'; return; }
+            if (!usuario.palpites[palpiteSelecionado]) return;
             
             const expirado = prazoExpirado();
-            const dataPrazo = prazoFinal ? new Date(prazoFinal).toLocaleString('pt-BR') : 'Nao definido';
+            const dataPrazo = prazo ? new Date(prazo).toLocaleString('pt-BR') : 'Não definido';
             document.getElementById('prazo-info').innerHTML = `Prazo: ${dataPrazo} ${expirado ? '<span style="color:red;">(ENCERRADO)</span>' : ''}`;
             
-            const palpiteAtual = usuarioAtual.palpites[palpiteSelecionado];
-            container.innerHTML = '';
+            const palpitesAtuais = usuario.palpites[palpiteSelecionado].palpites || [];
+            let html = '';
             
-            todosJogos.sort((a, b) => (a.id || 0) - (b.id || 0)).forEach(jogo => {
-                if (!jogo || !jogo.time1) return;
-                const palpite = palpiteAtual.palpites?.find(p => p && p.jogoId === jogo.id);
-                const badge1 = getTimeBadge(jogo.time1);
-                const badge2 = getTimeBadge(jogo.time2);
-                
-                const temResultado = (jogo.gols1 !== null && jogo.gols1 !== undefined && 
-                                      jogo.gols2 !== null && jogo.gols2 !== undefined);
-                
+            jogos.forEach(jogo => {
+                const palpite = palpitesAtuais.find(p => p.jogoId === jogo.id);
+                const badge1 = getEscudo(jogo.time1);
+                const badge2 = getEscudo(jogo.time2);
+                const temResultado = (jogo.gols1 !== null && jogo.gols2 !== null && typeof jogo.gols1 === 'number');
                 const disabled = (temResultado || expirado) ? 'disabled' : '';
                 
-                container.innerHTML += `
+                html += `
                     <div class="jogo-card" data-jogo-id="${jogo.id}">
                         <div class="jogo-header">
                             <div class="time-nome">${badge1} ${jogo.time1} x ${badge2} ${jogo.time2}</div>
                             <span>${jogo.data || '--/--'}</span>
                         </div>
-                        ${temResultado ? `<div class="resultado-final">RESULTADO: ${jogo.time1} ${jogo.gols1} x ${jogo.gols2} ${jogo.time2}</div>` : ''}
+                        ${temResultado ? `<div class="resultado-final">RESULTADO: ${jogo.gols1} x ${jogo.gols2}</div>` : ''}
                         <div class="placar-container">
-                            <div class="time-placar">
-                                ${badge1}
-                                <label>${jogo.time1}:</label>
-                                <input type="number" class="gols1" value="${palpite?.gols1 !== undefined ? palpite.gols1 : ''}" min="0" max="9" ${disabled}>
-                            </div>
-                            <div class="time-placar">
-                                ${badge2}
-                                <label>${jogo.time2}:</label>
-                                <input type="number" class="gols2" value="${palpite?.gols2 !== undefined ? palpite.gols2 : ''}" min="0" max="9" ${disabled}>
-                            </div>
+                            <div class="time-placar">${badge1}<label>${jogo.time1}:</label><input type="number" class="gols1" value="${palpite?.gols1 !== undefined ? palpite.gols1 : ''}" min="0" max="9" ${disabled}></div>
+                            <div class="time-placar">${badge2}<label>${jogo.time2}:</label><input type="number" class="gols2" value="${palpite?.gols2 !== undefined ? palpite.gols2 : ''}" min="0" max="9" ${disabled}></div>
                         </div>
                     </div>
                 `;
             });
-            
-            const btnExcluir = document.createElement('button');
-            btnExcluir.textContent = 'Excluir este Palpite';
-            btnExcluir.style.cssText = 'background:#e74c3c; color:white; border:none; padding:8px 16px; border-radius:30px; margin-top:10px; cursor:pointer;';
-            btnExcluir.onclick = () => excluirPalpite(palpiteSelecionado);
-            container.appendChild(btnExcluir);
+            container.innerHTML = html;
         }
         
-        function salvarPalpites() {
+        async function salvarPalpites() {
             if (prazoExpirado()) { alert('Prazo encerrado!'); return; }
-            if (palpiteSelecionado === null) { alert('Selecione um palpite'); return; }
             
-            const palpitesDoJogo = [];
-            let todosPreenchidos = true;
-            
-            document.querySelectorAll('.jogo-card').forEach(div => {
-                const jogoId = parseInt(div.dataset.jogoId);
-                const gols1 = div.querySelector('.gols1').value;
-                const gols2 = div.querySelector('.gols2').value;
-                if (!div.querySelector('.gols1').disabled) {
-                    if (gols1 === '' || gols2 === '') { 
-                        todosPreenchidos = false; 
-                        return; 
-                    }
-                    palpitesDoJogo.push({ jogoId, gols1: parseInt(gols1), gols2: parseInt(gols2) });
-                } else {
-                    const antigo = usuarioAtual.palpites[palpiteSelecionado]?.palpites?.find(p => p && p.jogoId === jogoId);
-                    if (antigo) palpitesDoJogo.push(antigo);
-                }
-            });
-            
-            if (!todosPreenchidos) { alert('Preencha todos os jogos!'); return; }
-            
-            usuarioAtual.palpites[palpiteSelecionado].palpites = palpitesDoJogo;
+            const novosPalpites = [];
+            for (let jogo of jogos) {
+                const input1 = document.querySelector(`.jogo-card[data-jogo-id="${jogo.id}"] .gols1`);
+                const input2 = document.querySelector(`.jogo-card[data-jogo-id="${jogo.id}"] .gols2`);
+                if (!input1 || !input2) continue;
+                const g1 = input1.value;
+                const g2 = input2.value;
+                if (g1 === '' || g2 === '') { alert('Preencha todos os jogos!'); return; }
+                novosPalpites.push({ jogoId: jogo.id, gols1: parseInt(g1), gols2: parseInt(g2) });
+            }
+            usuario.palpites[palpiteSelecionado].palpites = novosPalpites;
             salvarUsuario();
             alert('Palpite salvo!');
-            atualizarStatusPagamento();
-            if (!usuarioAtual.pagamentos[palpiteSelecionado]) mostrarModalPix();
         }
         
-        function atualizarStatusPagamento() {
-            const statusDiv = document.getElementById('status-pagamento');
-            if (!statusDiv || !usuarioAtual.palpites) return;
-            const total = usuarioAtual.palpites.length;
-            const pagos = usuarioAtual.pagamentos?.filter(p => p === true).length || 0;
-            statusDiv.innerHTML = `${total} palpite(s) | Pago: ${pagos} | Pendente: ${total - pagos}<br>Total: R$ ${(total * configValorAposta).toFixed(2)} | Pago: R$ ${(pagos * configValorAposta).toFixed(2)}`;
-        }
-        
-        function calcularPontosPalpite(palpite) {
-            if (!palpite || !palpite.palpites) return { total: 0, p3: 0, p1: 0 };
+        function calcularPontos(palpite) {
             let total = 0, p3 = 0, p1 = 0;
+            if (!palpite.palpites) return { total, p3, p1 };
             palpite.palpites.forEach(p => {
-                if (!p) return;
-                const jogo = todosJogos.find(j => j && j.id === p.jogoId);
-                if (jogo && jogo.gols1 != null && jogo.gols2 != null) {
+                const jogo = jogos.find(j => j.id === p.jogoId);
+                if (jogo && jogo.gols1 !== null && typeof jogo.gols1 === 'number') {
                     if (p.gols1 === jogo.gols1 && p.gols2 === jogo.gols2) { total += 3; p3++; }
                     else {
-                        const resJogo = jogo.gols1 > jogo.gols2 ? 1 : jogo.gols2 > jogo.gols1 ? 2 : 0;
-                        const resPalpite = p.gols1 > p.gols2 ? 1 : p.gols2 > p.gols1 ? 2 : 0;
-                        if (resJogo === resPalpite) { total += 1; p1++; }
+                        const resJ = jogo.gols1 > jogo.gols2 ? 1 : (jogo.gols2 > jogo.gols1 ? 2 : 0);
+                        const resP = p.gols1 > p.gols2 ? 1 : (p.gols2 > p.gols1 ? 2 : 0);
+                        if (resJ === resP) { total += 1; p1++; }
                     }
                 }
             });
             return { total, p3, p1 };
         }
         
-        function atualizarRanking() {
+        function mostrarRanking() {
+            const tbody = document.getElementById('ranking-body');
+            if (!tbody) return;
+            
             const palpitesPagos = [];
-            todosParticipantes.forEach(p => {
-                if (!p.palpites) return;
-                p.palpites.forEach((palpite, idx) => {
-                    if (p.pagamentos && p.pagamentos[idx]) {
-                        const pontos = calcularPontosPalpite(palpite);
-                        palpitesPagos.push({ nome: p.nome, palpiteNum: idx + 1, ...pontos });
-                    }
-                });
+            participantes.forEach(p => {
+                if (p.palpites && p.pagamentos) {
+                    p.palpites.forEach((palpite, idx) => {
+                        if (p.pagamentos[idx] === true) {
+                            const pontos = calcularPontos(palpite);
+                            palpitesPagos.push({ 
+                                nome: p.nome, 
+                                palpiteNum: idx + 1, 
+                                total: pontos.total,
+                                p3: pontos.p3,
+                                p1: pontos.p1
+                            });
+                        }
+                    });
+                }
             });
             
-            const todosZero = palpitesPagos.every(p => p.total === 0);
-            if (todosZero) {
-                palpitesPagos.sort((a, b) => a.nome.localeCompare(b.nome));
-            } else {
-                palpitesPagos.sort((a, b) => {
-                    if (a.total !== b.total) return b.total - a.total;
-                    return a.nome.localeCompare(b.nome);
-                });
-            }
+            palpitesPagos.sort((a, b) => b.total - a.total);
             
-            const tbody = document.getElementById('ranking-body');
-            if (palpitesPagos.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago</td></tr>'; 
-                return; 
+            if (palpitesPagos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum palpite pago. Faça o pagamento para aparecer no ranking!<\/td><\/tr>';
+                return;
             }
-            
-            let posicao = 1;
-            let pontosAnterior = null;
-            let posicaoAtual = 1;
             
             let html = '';
             for (let i = 0; i < palpitesPagos.length; i++) {
                 const item = palpitesPagos[i];
-                
-                if (item.total !== pontosAnterior) {
-                    posicaoAtual = i + 1;
-                }
-                posicao = posicaoAtual;
-                pontosAnterior = item.total;
-                
-                const isLider = (posicao === 1);
-                const rowClass = isLider ? 'class="primeiro"' : '';
-                
-                html += `<tr ${rowClass}>
-                              <td><strong>${posicao}º</strong></td>
-                              <td>${item.nome}</td>
-                              <td>#${item.palpiteNum}</td>
-                              <td>${item.p3}</td>
-                              <td>${item.p1}</td>
-                              <td><strong>${item.total}</strong></td>
-                           </tr>`;
+                const isLider = (i === 0);
+                html += `<tr ${isLider ? 'class="primeiro"' : ''}>
+                            <td><strong>${i+1}º</strong></td>
+                            <td>${item.nome}</td>
+                            <td>#${item.palpiteNum}</td>
+                            <td>${item.p3}</td>
+                            <td>${item.p1}</td>
+                            <td><strong>${item.total}</strong></td>
+                          </tr>`;
             }
             tbody.innerHTML = html;
-            
-            if (usuarioAtual && usuarioAtual.pagamentos) { 
-                document.getElementById('ranking-aviso').style.display = usuarioAtual.pagamentos.some(p => p === false) ? 'block' : 'none'; 
-            }
         }
         
         function mostrarPalpitesGrupo() {
             const container = document.getElementById('palpites-grupo-container');
             if (!container) return;
-            if (!prazoExpirado()) { 
-                document.getElementById('prazo-aviso').style.display = 'block'; 
-                container.innerHTML = ''; 
-                return; 
+            
+            if (!prazoExpirado()) {
+                document.getElementById('prazo-aviso').style.display = 'block';
+                container.innerHTML = '';
+                return;
             }
             document.getElementById('prazo-aviso').style.display = 'none';
             
-            const jogosOrd = [...todosJogos].sort((a,b)=>(a.id||0)-(b.id||0));
-            const participantesOrd = [...todosParticipantes].sort((a,b)=>a.nome.localeCompare(b.nome));
+            if (!jogos.length) { container.innerHTML = '<p>Nenhum jogo</p>'; return; }
             
-            if (participantesOrd.length === 0) {
-                container.innerHTML = '<p>Nenhum participante</p>';
-                return;
-            }
+            const jogosOrd = [...jogos].sort((a,b)=>(a.id||0)-(b.id||0));
+            const participantesOrd = [...participantes].sort((a,b)=>a.nome.localeCompare(b.nome));
             
-            function getCor(palpiteJogo, jogo) {
-                if (!jogo || jogo.gols1 === null || jogo.gols2 === null) return 'white';
-                if (!palpiteJogo) return '#f8d7da';
-                if (palpiteJogo.gols1 === jogo.gols1 && palpiteJogo.gols2 === jogo.gols2) return '#d4edda';
-                const resJogo = jogo.gols1 > jogo.gols2 ? 1 : (jogo.gols2 > jogo.gols1 ? 2 : 0);
-                const resPalpite = palpiteJogo.gols1 > palpiteJogo.gols2 ? 1 : (palpiteJogo.gols2 > palpiteJogo.gols1 ? 2 : 0);
-                if (resJogo === resPalpite) return '#fff3cd';
-                return '#f8d7da';
-            }
-            
-            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;">';
-            html += '<thead><tr><th>Jogador</th><th>Palpite</th>';
-            jogosOrd.forEach(j => { 
-                const b1 = getTimeBadge(j.time1); 
-                const b2 = getTimeBadge(j.time2); 
-                const resultado = (j.gols1 !== null && j.gols2 !== null) ? `${j.gols1} x ${j.gols2}` : '--:--';
-                html += `<th style="min-width:80px;">${b1} ${j.time1}<br>vs<br>${b2} ${j.time2}<br><span style="font-size:10px; color:#666;">${resultado}</span></th>`; 
-            });
+            let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>Jogador</th><th>Palpite</th>';
+            jogosOrd.forEach(j => { html += `<th>${j.time1}<br>x<br>${j.time2}</th>`; });
             html += '</tr></thead><tbody>';
             
             participantesOrd.forEach(p => {
                 if (!p.palpites) return;
                 p.palpites.forEach((palpite, idx) => {
-                    html += `<tr>`;
-                    html += `<td style="background:#f0f0f0; font-weight:bold;">${p.nome}</td>`;
-                    html += `<td style="background:#f0f0f0; text-align:center;">#${idx+1}</td>`;
-                    
-                    jogosOrd.forEach(j => { 
-                        const pp = palpite.palpites?.find(pal=>pal?.jogoId===j.id);
-                        const cor = getCor(pp, j);
-                        const placar = pp ? `${pp.gols1} x ${pp.gols2}` : '---';
-                        html += `<td style="background:${cor}; text-align:center;">${placar}</td>`;
+                    html += `<tr><td style="background:#f0f0f0">${p.nome}</td><td style="background:#f0f0f0">#${idx+1}</td>`;
+                    jogosOrd.forEach(j => {
+                        const pp = palpite.palpites?.find(pal => pal.jogoId === j.id);
+                        let cor = 'white', texto = '---';
+                        if (pp && j.gols1 !== null && typeof j.gols1 === 'number') {
+                            if (pp.gols1 === j.gols1 && pp.gols2 === j.gols2) { cor = '#d4edda'; texto = `${pp.gols1} x ${pp.gols2}`; }
+                            else {
+                                const resJ = j.gols1 > j.gols2 ? 1 : (j.gols2 > j.gols1 ? 2 : 0);
+                                const resP = pp.gols1 > pp.gols2 ? 1 : (pp.gols2 > pp.gols1 ? 2 : 0);
+                                if (resJ === resP) { cor = '#fff3cd'; texto = `${pp.gols1} x ${pp.gols2}`; }
+                                else { cor = '#f8d7da'; texto = `${pp.gols1} x ${pp.gols2}`; }
+                            }
+                        } else if (pp) { texto = `${pp.gols1} x ${pp.gols2}`; }
+                        html += `<td style="background:${cor}">${texto}<\/td>`;
                     });
-                    html += '</table>';
+                    html += '<\/tr>';
                 });
             });
-            html += '</tbody></table></div>';
-            
-            html += `<div style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:10px; font-size:11px; display:flex; gap:15px; flex-wrap:wrap;">
-                        <span><span style="display:inline-block; width:15px; height:15px; background:#d4edda;"></span> Acertou o placar (3pts)</span>
-                        <span><span style="display:inline-block; width:15px; height:15px; background:#fff3cd;"></span> Acertou o resultado (1pt)</span>
-                        <span><span style="display:inline-block; width:15px; height:15px; background:#f8d7da;"></span> Errou/nao palpou</span>
-                        <span><span style="display:inline-block; width:15px; height:15px; background:white; border:1px solid #ddd;"></span> Aguardando resultado</span>
-                     </div>`;
-            
+            html += '<\/tbody><\/table><\/div>';
             container.innerHTML = html;
         }
         
         function mudarAba(aba, event) {
-            const abaPalpites = document.getElementById('aba-palpites');
-            const abaRanking = document.getElementById('aba-ranking');
-            const abaGrupo = document.getElementById('aba-grupo');
-            
-            if (abaPalpites) abaPalpites.classList.remove('ativo');
-            if (abaRanking) abaRanking.classList.remove('ativo');
-            if (abaGrupo) abaGrupo.classList.remove('ativo');
-            
-            const abaAtiva = document.getElementById(`aba-${aba}`);
-            if (abaAtiva) abaAtiva.classList.add('ativo');
-            
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('ativo'));
-            if (event && event.target) event.target.classList.add('ativo');
-            
-            if (aba === 'ranking') atualizarRanking();
+            document.getElementById('aba-palpites').classList.remove('ativo');
+            document.getElementById('aba-ranking').classList.remove('ativo');
+            document.getElementById('aba-grupo').classList.remove('ativo');
+            document.getElementById(`aba-${aba}`).classList.add('ativo');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+            if (event?.target) event.target.classList.add('ativo');
+            if (aba === 'ranking') mostrarRanking();
             if (aba === 'grupo') mostrarPalpitesGrupo();
         }
         
         function mostrarModalPix() {
-            if (!usuarioAtual) return;
-            const pendentes = usuarioAtual.pagamentos?.filter(p => p === false).length || 0;
-            if (pendentes === 0) { alert('Todos os palpites ja estao pagos!'); return; }
+            if (!usuario) return;
+            const pendentes = usuario.pagamentos?.filter(p => p === false).length || 0;
+            if (pendentes === 0) { alert('Todos os palpites já estão pagos!'); return; }
             document.getElementById('modal-qtd-palpites').textContent = pendentes;
             document.getElementById('modal-valor-total').innerHTML = `R$ ${(pendentes * configValorAposta).toFixed(2)}`;
             document.getElementById('modalPix').style.display = 'flex';
@@ -622,21 +547,25 @@
         function fecharModal() { document.getElementById('modalPix').style.display = 'none'; }
         function copiarChavePix() { navigator.clipboard.writeText(chavePix); alert('Chave PIX copiada!'); }
         
-        // Restaurar sessão
+        // Inicializar - Restaurar sessão
         const celularSalvo = localStorage.getItem('userCelular');
         if (celularSalvo) {
-            db.ref('participantes').once('value').then(snap => {
-                const participantes = snap.val() ? Object.values(snap.val()) : [];
-                usuarioAtual = participantes.find(p => p && p.celular === celularSalvo);
-                if (usuarioAtual) {
+            db.ref('participantes').once('value').then(async snap => {
+                const lista = snap.val() ? Object.values(snap.val()) : [];
+                usuario = lista.find(p => p.celular === celularSalvo);
+                if (usuario) {
+                    // GARANTIR PALPITE INICIAL PARA USUÁRIO EXISTENTE
+                    if (!usuario.palpites || usuario.palpites.length === 0) {
+                        usuario.palpites = [{ id: Date.now(), palpites: [] }];
+                        usuario.pagamentos = [false];
+                        await salvarParticipante(usuario);
+                    }
                     document.getElementById('login').style.display = 'none';
                     document.getElementById('painel').style.display = 'block';
                     document.getElementById('btnSair').style.display = 'inline-block';
-                    if (!usuarioAtual.palpites) usuarioAtual.palpites = [];
-                    if (!usuarioAtual.pagamentos) usuarioAtual.pagamentos = [];
-                    if (usuarioAtual.palpites.length === 0) criarNovoPalpite();
-                    else palpiteSelecionado = 0;
-                    carregarTudo();
+                    palpiteSelecionado = 0;
+                    await carregarAcumulado();
+                    await carregarDados();
                 }
             });
         }
