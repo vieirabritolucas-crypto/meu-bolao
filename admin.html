@@ -260,14 +260,13 @@
         function finalizarRodada() {
             if(!confirm('⚠️ Finalizar rodada vai zerar todos os palpites e verificar quem fez 20+ pontos. Continuar?')) return;
             
-            const pagantes = participantes.filter(p => p.pagamentos && p.pagamentos.some(pg => pg === true));
+            const pagantes = participantes.filter(p => p.pago);
             const desempenho = [];
-            
             pagantes.forEach(p => {
                 let totalPontos = 0;
-                if(p.palpites && p.pagamentos) {
-                    p.palpites.forEach((palpite, idx) => {
-                        if(p.pagamentos[idx] === true && palpite.palpites) {
+                if(p.palpites) {
+                    p.palpites.forEach(palpite => {
+                        if(palpite.palpites) {
                             palpite.palpites.forEach(pp => {
                                 const jogo = jogos.find(j => j.id === pp.jogoId);
                                 if(jogo && jogo.gols1 !== null && jogo.gols2 !== null) {
@@ -282,7 +281,7 @@
                         }
                     });
                 }
-                desempenho.push({ nome: p.nome, celular: p.celular, pontos: totalPontos });
+                desempenho.push({ nome: p.nome, pontos: totalPontos });
             });
             
             const vencedores = desempenho.filter(d => d.pontos >= 20);
@@ -292,23 +291,15 @@
                 let msg = `🏆 PRÊMIO ACUMULADO DE R$ ${acumuladoAtual.toFixed(2)} ATINGIDO! 🏆\n\n`;
                 msg += `${vencedores.length} participante(s) fez(eram) 20+ pontos:\n`;
                 msg += vencedores.map(v => `${v.nome} (${v.pontos} pts)`).join('\n');
-                msg += `\n\n💰 Cada um receberá R$ ${premioIndividual.toFixed(2)}!\n\n✅ Entre em contato com os vencedores para o pagamento.`;
+                msg += `\n\n💰 Cada um receberá R$ ${premioIndividual.toFixed(2)}!`;
                 alert(msg);
                 db.ref('config/acumulado').set(0);
             } else if(acumuladoAtual > 0) {
                 alert(`⚠️ Ninguém fez 20 pontos ou mais.\n💰 Prêmio acumulado de R$ ${acumuladoAtual.toFixed(2)} vai para a próxima rodada!`);
-            } else {
-                alert('📊 Nenhum prêmio acumulado disponível para esta rodada.');
             }
             
-            participantes.forEach(p => { 
-                p.palpites = []; 
-                p.pagamentos = []; 
-            });
-            jogos.forEach(j => { 
-                j.gols1 = null; 
-                j.gols2 = null; 
-            });
+            participantes.forEach(p => { p.palpites = []; p.pagamentos = []; });
+            jogos.forEach(j => { j.gols1 = null; j.gols2 = null; });
             
             db.ref('participantes').set(participantes);
             db.ref('jogos').set(jogos);
@@ -335,10 +326,7 @@
         function mostrarPagamentos() {
             const div = document.getElementById('pagamentos-lista');
             let totalPalpites = 0, totalPagos = 0;
-            participantes.forEach(p => { 
-                if(p.palpites) totalPalpites += p.palpites.length; 
-                if(p.pagamentos) totalPagos += p.pagamentos.filter(pg => pg === true).length; 
-            });
+            participantes.forEach(p => { if(p.palpites) totalPalpites += p.palpites.length; if(p.pagamentos) totalPagos += p.pagamentos.filter(pg => pg === true).length; });
             const valorAposta = parseInt(document.getElementById('valor-aposta').value) || 10;
             document.getElementById('stat-total-participantes').textContent = participantes.length;
             document.getElementById('stat-total-palpites').textContent = totalPalpites;
@@ -385,12 +373,7 @@
         
         function togglePagamentoPalpite(celular, palpiteIdx) {
             const p = participantes.find(p => p.celular === celular);
-            if(p && p.pagamentos) { 
-                p.pagamentos[palpiteIdx] = !p.pagamentos[palpiteIdx]; 
-                db.ref('participantes').set(participantes); 
-                mostrarPagamentos(); 
-                mostrarTabelaPalpites(); 
-            }
+            if(p && p.pagamentos) { p.pagamentos[palpiteIdx] = !p.pagamentos[palpiteIdx]; db.ref('participantes').set(participantes); mostrarPagamentos(); mostrarTabelaPalpites(); }
         }
         
         function adicionarPalpiteJogador(celular) {
@@ -417,71 +400,35 @@
         
         function mostrarTabelaPalpites() {
             const container = document.getElementById('tabela-palpites-container');
-            if(!container) return;
-            
             const jogosOrdenados = [...jogos].sort((a,b) => (a.id||0)-(b.id||0));
             const participantesOrdenados = [...participantes].sort((a, b) => a.nome.localeCompare(b.nome));
             
-            if(jogosOrdenados.length === 0) {
-                container.innerHTML = '<p style="text-align:center;">Nenhum jogo cadastrado</p>';
-                return;
-            }
-            
-            let html = '<table class="tabela-palpites"><thead><tr>';
-            html += '<th>Jogador</th><th>Palpite</th><th>Pago</th>';
+            let html = '<table class="tabela-palpites"><thead><tr><th>Jogador</th><th>Palpite</th><th>Pago</th>';
             jogosOrdenados.forEach(j => html += `<th>${j.time1}<br>x<br>${j.time2}</th>`);
-            html += '</tr></thead><tbody>';
+            html += '<tr></thead><tbody>';
             
-            if(participantesOrdenados.length === 0) { 
-                html += '<tr><td colspan="3">Nenhum participante<\/td><\/tr>'; 
-            } else {
+            if(participantesOrdenados.length === 0) { html += '<table><td colspan="3">Nenhum participante<\/td><\/tr>'; }
+            else {
                 participantesOrdenados.forEach(p => {
                     if(p.palpites && p.palpites.length > 0) {
                         p.palpites.forEach((palpite, idx) => {
                             const pago = p.pagamentos && p.pagamentos[idx];
-                            
                             html += `<tr>
-                                        <td><strong>${p.nome}</strong></td>
+                                        <td>${p.nome}</td>
                                         <td>#${idx+1}</td>
                                         <td>${pago ? '✅' : '❌'}</td>`;
-                            
-                            jogosOrdenados.forEach(j => {
-                                const palpiteJogo = palpite.palpites?.find(pp => pp && pp.jogoId === j.id);
-                                
-                                let exibicao = '';
-                                if (palpiteJogo && j.gols1 !== null && j.gols2 !== null) {
-                                    const acertouExato = (palpiteJogo.gols1 === j.gols1 && palpiteJogo.gols2 === j.gols2);
-                                    if (acertouExato) {
-                                        exibicao = `🎯 ${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
-                                    } else {
-                                        const resJogo = j.gols1 > j.gols2 ? 1 : j.gols2 > j.gols1 ? 2 : 0;
-                                        const resPalpite = palpiteJogo.gols1 > palpiteJogo.gols2 ? 1 : palpiteJogo.gols2 > palpiteJogo.gols1 ? 2 : 0;
-                                        if (resJogo === resPalpite) {
-                                            exibicao = `👍 ${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
-                                        } else {
-                                            exibicao = `❌ ${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
-                                        }
-                                    }
-                                } else if (palpiteJogo) {
-                                    exibicao = `${palpiteJogo.gols1} x ${palpiteJogo.gols2}`;
-                                } else {
-                                    exibicao = '---';
-                                }
-                                
-                                html += `<td style="text-align: center;">${exibicao}<\/td>`;
-                            });
-                            
+                            jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); html += `<td>${palpiteJogo ? `${palpiteJogo.gols1} x ${palpiteJogo.gols2}` : '---'}</td>`; });
                             html += `</tr>`;
                         });
                     } else {
                         html += `<tr>
                                     <td>${p.nome}</td>
                                     <td colspan="${2+jogosOrdenados.length}" style="color:#999;">Nenhum palpite<\/td>
-                                  </tr>`;
+                                  </table>`;
                     }
                 });
             }
-            html += `</tbody></table>`;
+            html += `</tbody></tr>`;
             container.innerHTML = html;
         }
         
@@ -490,26 +437,16 @@
             let csv = '\uFEFFJogador;Palpite;Pago';
             jogosOrdenados.forEach(j => csv += `;${j.time1} x ${j.time2}`);
             csv += '\n';
-            
             participantes.forEach(p => {
                 if(p.palpites) {
                     p.palpites.forEach((palpite, idx) => {
                         const pago = p.pagamentos && p.pagamentos[idx];
                         csv += `${p.nome};#${idx+1};${pago ? 'Sim' : 'Não'}`;
-                        
-                        jogosOrdenados.forEach(j => { 
-                            const palpiteJogo = palpite.palpites?.find(pp => pp && pp.jogoId === j.id);
-                            if (palpiteJogo) {
-                                csv += `;${palpiteJogo.gols1}-${palpiteJogo.gols2}`;
-                            } else {
-                                csv += `;---`;
-                            }
-                        });
+                        jogosOrdenados.forEach(j => { const palpiteJogo = palpite.palpites?.find(pp => pp.jogoId === j.id); csv += `;${palpiteJogo ? `${palpiteJogo.gols1}-${palpiteJogo.gols2}` : '---'}`; });
                         csv += '\n';
                     });
                 }
             });
-            
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -557,85 +494,4 @@
                     h2 { margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center; }
                     table { width: 100%; border-collapse: collapse; margin: 0 auto; font-size: 12px; }
                     th, td { border: 1px solid #000; padding: 10px 8px; text-align: center; vertical-align: middle; }
-                    th { background: #667eea; color: white; font-weight: bold; }
-                    .time-casa { text-align: left; font-weight: 500; }
-                    .time-visitante { text-align: left; font-weight: 500; }
-                    .gols { font-weight: bold; width: 50px; }
-                    .x { width: 30px; font-weight: bold; }
-                    footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; }
-                </style>
-            </head>
-            <body>`;
-            
-            palpitesPagos.forEach((item, index) => {
-                html += `<div class="pagina">`;
-                html += `<h2>${item.nome} - Palpite #${item.palpiteNum}</h2>`;
-                html += `<td>
-                            <thead>
-                                <tr>
-                                    <th style="width:35%">Time Casa</th>
-                                    <th style="width:15%">Gols</th>
-                                    <th style="width:5%"></th>
-                                    <th style="width:15%">Gols</th>
-                                    <th style="width:30%">Time Visitante</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-                
-                jogosOrdenados.forEach(jogo => {
-                    const palpiteJogo = item.palpite.palpites?.find(pp => pp && pp.jogoId === jogo.id);
-                    let golsCasa = '---';
-                    let golsVisitante = '---';
-                    
-                    if (palpiteJogo && palpiteJogo.gols1 !== undefined) {
-                        golsCasa = palpiteJogo.gols1;
-                        golsVisitante = palpiteJogo.gols2;
-                    }
-                    
-                    html += `<tr>
-                                <td class="time-casa">${jogo.time1 || '?'}</td>
-                                <td class="gols">${golsCasa}</td>
-                                <td class="x">x<\/td>
-                                <td class="gols">${golsVisitante}<\/td>
-                                <td class="time-visitante">${jogo.time2 || '?'}<\/td>
-                              <\/tr>`;
-                });
-                
-                html += `<\/tbody>
-                         <\/table>`;
-                html += `<footer>Gerado por Meu Bolão - ${new Date().toLocaleString('pt-BR')}<\/footer>`;
-                html += `<\/div>`;
-            });
-            
-            html += `<\/body><\/html>`;
-            
-            const janela = window.open('', '_blank');
-            if(janela) {
-                janela.document.write(html);
-                janela.document.close();
-                janela.print();
-            } else {
-                alert('Por favor, permita pop-ups para este site');
-            }
-        }
-        
-        function salvarConfig() {
-            const config = { 
-                valorAposta: parseInt(document.getElementById('valor-aposta').value) || 10, 
-                percentualPremio: parseInt(document.getElementById('percentual-premio').value) || 80, 
-                chave_pix: document.getElementById('chave-pix').value 
-            };
-            db.ref('config').update(config);
-            const novaSenha = document.getElementById('nova-senha').value;
-            if(novaSenha) { 
-                db.ref('config/senha').set(novaSenha); 
-                senhaAdmin = novaSenha; 
-                alert('✅ Configurações salvas! Nova senha definida.');
-            } else {
-                alert('✅ Configurações salvas!');
-            }
-            document.getElementById('nova-senha').value = '';
-        }
-    </script>
-</body>
-</html>
+                    th { background: #
